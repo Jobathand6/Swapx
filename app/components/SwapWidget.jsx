@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createThirdwebClient } from "thirdweb";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createWallet } from "thirdweb/wallets";
+import { getSwapQuote, getSwapPrice } from "../lib/swap";
 import DustSweeper from "./DustSweeper";
 import { ethereum, polygon, bsc, arbitrum, avalanche, base, optimism } from "thirdweb/chains";
 
@@ -243,6 +244,8 @@ export default function SwapWidget() {
 
   // Système de niveaux
   const [swapCount, setSwapCount] = useState(0);
+const [quoteData, setQuoteData] = useState(null);
+const [quoteLoading, setQuoteLoading] = useState(false);
   const [levelUpNotif, setLevelUpNotif] = useState(null);
   const [showLevelModal, setShowLevelModal] = useState(false);
 const [showDustSweeper, setShowDustSweeper] = useState(false);
@@ -257,7 +260,7 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
     const fetchPrices = async () => {
       try {
         const ids = Object.values(COINGECKO_IDS).join(",");
-        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+        const res = await fetch(`/api/prices?ids=${ids}`);
         const data = await res.json();
         const newPrices = {}; const newChanges = {};
         Object.entries(COINGECKO_IDS).forEach(([symbol, id]) => {
@@ -280,10 +283,37 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
 
   useEffect(() => {
     if (!fromAmount || isNaN(fromAmount) || Number(fromAmount) === 0) { setToAmount(""); return; }
-    const t = setTimeout(() => {
-      const r = getPrice(fromToken?.symbol) / getPrice(toToken?.symbol);
-      setToAmount((Number(fromAmount) * r).toFixed(6));
-    }, 400);
+    const t = setTimeout(async () => {
+      try {
+        setQuoteLoading(true);
+        if (!selectedChain?.id || !fromToken?.address || !toToken?.address) {
+          const r = getPrice(fromToken?.symbol) / getPrice(toToken?.symbol);
+          setToAmount((Number(fromAmount) * r).toFixed(6));
+          setQuoteLoading(false);
+          return;
+        }
+        const decimals = fromToken?.decimals || 18;
+        const amountWei = BigInt(Math.floor(Number(fromAmount) * Math.pow(10, decimals))).toString();
+        const quote = await getSwapPrice({
+          chainId: selectedChain.id,
+          fromToken: fromToken?.address || "NATIVE",
+          toToken: toToken?.address || "NATIVE",
+          amount: amountWei,
+        });
+        if (quote?.buyAmount) {
+          const toDecimals = toToken?.decimals || 18;
+          setToAmount((Number(quote.buyAmount) / Math.pow(10, toDecimals)).toFixed(6));
+        } else {
+          const r = getPrice(fromToken?.symbol) / getPrice(toToken?.symbol);
+          setToAmount((Number(fromAmount) * r).toFixed(6));
+        }
+      } catch {
+        const r = getPrice(fromToken?.symbol) / getPrice(toToken?.symbol);
+        setToAmount((Number(fromAmount) * r).toFixed(6));
+      } finally {
+        setQuoteLoading(false);
+      }
+    }, 600);
     return () => clearTimeout(t);
   }, [fromAmount, fromToken, toToken, prices]);
 
@@ -296,22 +326,49 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
     if (!account) { setError("Connecte ton wallet d'abord !"); return; }
     if (!fromAmount || Number(fromAmount) === 0) { setError("Entre un montant."); return; }
     setError(null); setLoading(true);
-    await new Promise(r => setTimeout(r, 2000));
-    const hash = "0x" + Math.random().toString(16).slice(2, 14) + "...";
-    setTxHash(hash);
-
-    // Incrémenter le compteur de swaps
-    const newCount = swapCount + 1;
-    const oldLevel = getLevel(swapCount);
-    const newLevel = getLevel(newCount);
-
-    setSwapCount(newCount);
-    setSwapHistory(prev => [{ from: fromToken.symbol, to: toToken.symbol, amountIn: fromAmount, amountOut: toAmount, chain: selectedChain.name, hash, time: new Date().toLocaleTimeString() }, ...prev.slice(0, 4)]);
-
-    // Notification de level up
-    if (newLevel.name !== oldLevel.name) {
-      setLevelUpNotif(newLevel);
-      setTimeout(() => setLevelUpNotif(null), 4000);
+    try {
+      if (!selectedChain?.id) { setError("Chaîne non sélectionnée."); setLoading(false); return; }
+      if (!fromToken?.address) { setError("Token non sélectionné."); setLoading(false); return; }
+      const decimals = fromToken?.decimals || 18;
+      const amountWei = BigInt(Math.floor(Number(fromAmount) * Math.pow(10, decimals))).toString();
+      const quote = await getSwapQuote({
+        chainId: Number(selectedChain.id),
+        fromToken: fromToken?.address,
+        toToken: toToken?.address,
+        amount: amountWei,
+        walletAddress: account.address,
+        slippage,
+      });
+      if (quote?.transaction) {
+        const { sendTransaction, prepareTransaction } = await import("thirdweb");
+        const prepared = prepareTransaction({
+          to: quote.transaction.to,
+          data: quote.transaction.data,
+          value: quote.transaction.value ? BigInt(quote.transaction.value) : 0n,
+          chain: selectedChain.chain,
+          client,
+          gas: quote.transaction.gas ? BigInt(quote.transaction.gas) : undefined,
+        });
+        const tx = await sendTransaction({
+          account,
+          transaction: prepared,
+        });
+        const hash = tx.transactionHash;
+        setTxHash(hash);
+        setSwapHistory(prev => [{ from: fromToken.symbol, to: toToken.symbol, amountIn: fromAmount, amountOut: toAmount, chain: selectedChain.name, hash, time: new Date().toLocaleTimeString() }, ...prev.slice(0, 4)]);
+        const newCount = swapCount + 1;
+        const oldLevel = getLevel(swapCount);
+        const newLevel = getLevel(newCount);
+        setSwapCount(newCount);
+        if (newLevel.name !== oldLevel.name) {
+          setLevelUpNotif(newLevel);
+          setTimeout(() => setLevelUpNotif(null), 4000);
+        }
+      } else {
+        setError("Impossible d'obtenir un quote. Réessaie.");
+      }
+    } catch (e) {
+      setError("Erreur lors du swap : " + (e.message || "inconnue"));
     }
 
     setLoading(false); setFromAmount(""); setToAmount("");
