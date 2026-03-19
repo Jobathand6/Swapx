@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createThirdwebClient } from "thirdweb";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createWallet } from "thirdweb/wallets";
+import DustSweeper from "./DustSweeper";
 import { ethereum, polygon, bsc, arbitrum, avalanche, base, optimism } from "thirdweb/chains";
 
 const client = createThirdwebClient({
@@ -244,6 +245,7 @@ export default function SwapWidget() {
   const [swapCount, setSwapCount] = useState(0);
   const [levelUpNotif, setLevelUpNotif] = useState(null);
   const [showLevelModal, setShowLevelModal] = useState(false);
+const [showDustSweeper, setShowDustSweeper] = useState(false);
 
   const currentLevel = getLevel(swapCount);
   const progress = getProgress(swapCount);
@@ -437,6 +439,7 @@ export default function SwapWidget() {
       `}</style>
 
       <PangeaBackground />
+{showDustSweeper && <DustSweeper onClose={() => setShowDustSweeper(false)} />}
 
       {/* LEVEL UP NOTIFICATION */}
       {levelUpNotif && (
@@ -456,12 +459,14 @@ export default function SwapWidget() {
           <span className="nav-logo-text">PANGEON</span>
         </div>
         <div className="nav-links">
-          {["Swap", "Explorer", "Pool"].map(tab => (
-            <button key={tab} className={`nav-link ${activeTab === tab ? "active" : ""}`} onClick={() => setActiveTab(tab)}>{tab}</button>
+          {["Swap", "Explorer", "Pool", "🧹 Sweep"].map(tab => (
+            <button key={tab} className={`nav-link ${activeTab === tab ? "active" : ""}`} onClick={() => { if(tab === "🧹 Sweep") { setShowDustSweeper(true); } else { setActiveTab(tab); } }}>{tab}</button>
           ))}
         </div>
         <div className="nav-right">
-          {/* Badge de niveau */}
+          
+
+{/* Badge de niveau */}
           <button
             className="level-badge"
             style={{borderColor: `${currentLevel.color}40`, background: currentLevel.bg, color: currentLevel.color}}
