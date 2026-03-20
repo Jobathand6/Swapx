@@ -30,7 +30,7 @@ const STARS = Array.from({length: 60}, (_, i) => ({
   animDelay: `${(i % 5) * 0.8}s`,
 }));
 
-function TokenLogo({ src, size = 28 }) {
+function TokenLogo({ src, size = 28 }: { src: string; size?: number }) {
   const [imgSrc, setImgSrc] = useState(src);
   return (
     <img src={imgSrc} width={size} height={size}
