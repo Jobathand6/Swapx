@@ -280,7 +280,7 @@ git commit -m "fix css variables typescript"
 ```
 ```
 git push
-              <img src={c.logo} width={44} height={44} style={{borderRadius:"50%", objectFit:"cover"}} onError={e => e.target.style.display="none"} />
+              <img src={c.logo} width={44} height={44} style={{borderRadius:"50%", objectFit:"cover"}} onError={e => (e.target as HTMLImageElement).style.display="none"} />
               <div className="chain-card-info">
                 <div className="chain-card-name">{c.name}</div>
                 <div className="chain-card-symbol">{c.symbol}</div>
@@ -330,7 +330,7 @@ git push
             ].map(t => (
               <div key={t.symbol} className="dust-token-row">
                 <div style={{display:"flex", alignItems:"center", gap:10}}>
-                  <img src={t.logo} width={28} height={28} style={{borderRadius:"50%"}} onError={e=>e.target.style.display="none"} />
+                  <img src={t.logo} width={28} height={28} style={{borderRadius:"50%"}} onError={e=>(e.target as HTMLImageElement).style.display="none"} />
                   <span style={{fontFamily:"'DM Sans', sans-serif", fontWeight:700, color:"#fff"}}>{t.symbol}</span>
                 </div>
                 <span style={{fontFamily:"'DM Sans', sans-serif", fontSize:13, color:"rgba(255,255,255,0.4)"}}>{t.val}</span>
