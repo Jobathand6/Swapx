@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { createThirdwebClient } from "thirdweb";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createWallet } from "thirdweb/wallets";
+import { ethereum, polygon, bsc, arbitrum, avalanche, base, optimism } from "thirdweb/chains";
 import { getSwapQuote, getSwapPrice } from "../lib/swap";
 import DustSweeper from "./DustSweeper";
-import { ethereum, polygon, bsc, arbitrum, avalanche, base, optimism } from "thirdweb/chains";
+import SolanaSwap from "./SolanaSwap";
 
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "demo",
@@ -20,7 +21,6 @@ const WALLETS = [
   createWallet("walletConnect"),
 ];
 
-// ─── SYSTÈME DE NIVEAUX ───────────────────────────────────────────
 const LEVELS = [
   { name: "Fossil",   emoji: "🪨", min: 0,     max: 49,   color: "#8B7355", bg: "rgba(139,115,85,0.15)" },
   { name: "Oeuf",     emoji: "🥚", min: 50,    max: 499,  color: "#C8B89A", bg: "rgba(200,184,154,0.15)" },
@@ -33,21 +33,16 @@ const LEVELS = [
 function getLevel(swapCount) {
   return LEVELS.find(l => swapCount >= l.min && swapCount <= l.max) || LEVELS[0];
 }
-
 function getProgress(swapCount) {
   const level = getLevel(swapCount);
   if (level.max === Infinity) return 100;
-  const range = level.max - level.min + 1;
-  const progress = swapCount - level.min;
-  return Math.floor((progress / range) * 100);
+  return Math.floor(((swapCount - level.min) / (level.max - level.min + 1)) * 100);
 }
-
 function getNextLevel(swapCount) {
   const idx = LEVELS.findIndex(l => swapCount >= l.min && swapCount <= l.max);
   return idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null;
 }
 
-// ─── LOGOS ────────────────────────────────────────────────────────
 const L = {
   ETH:   "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
   USDC:  "https://assets.coingecko.com/coins/images/6319/small/usdc.png",
@@ -101,7 +96,7 @@ const FALLBACK_RATES = {
   SAND: 0.35, MANA: 0.35, APE: 1.2, LRC: 0.18, IMX: 1.5,
 };
 
-const CHAINS = [
+const EVM_CHAINS = [
   { id: 1,     name: "Ethereum",  shortName: "ETH",  color: "#627EEA", chain: ethereum,  logo: L.ETH },
   { id: 137,   name: "Polygon",   shortName: "MATIC", color: "#8247E5", chain: polygon,   logo: L.MATIC },
   { id: 56,    name: "BNB Chain", shortName: "BNB",  color: "#F3BA2F", chain: bsc,        logo: L.BNB },
@@ -110,6 +105,9 @@ const CHAINS = [
   { id: 8453,  name: "Base",      shortName: "BASE", color: "#0052FF", chain: base,       logo: L.BASE },
   { id: 10,    name: "Optimism",  shortName: "OP",   color: "#FF0420", chain: optimism,   logo: L.OP },
 ];
+
+const SOLANA_CHAIN = { id: "solana", name: "Solana", shortName: "SOL", color: "#9945FF", logo: L.SOL };
+const ALL_CHAINS = [...EVM_CHAINS, SOLANA_CHAIN];
 
 const TOKENS_BY_CHAIN = {
   1: [
@@ -183,7 +181,7 @@ function TokenLogo({ src, size = 28 }) {
   return (
     <img src={imgSrc} width={size} height={size}
       style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0, background: "#333" }}
-      onError={() => setImgSrc(`https://ui-avatars.com/api/?name=${imgSrc}&size=${size}&background=333&color=fff&rounded=true`)}
+      onError={() => setImgSrc(`https://ui-avatars.com/api/?name=?&size=${size}&background=333&color=fff&rounded=true`)}
     />
   );
 }
@@ -212,8 +210,7 @@ function PangeaBackground() {
       <style>{`
         @keyframes pulse { 0%,100%{opacity:0.1} 50%{opacity:0.2} }
         @keyframes mistMove { 0%,100%{transform:translateX(0)} 50%{transform:translateX(40px)} }
-        @keyframes levelUp { 0%{transform:scale(0.5);opacity:0} 50%{transform:scale(1.2);opacity:1} 100%{transform:scale(1);opacity:1} }
-        @keyframes fadeOut { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-30px)} }
+        @keyframes levelUp { 0%{transform:scale(0.5) translateX(-50%);opacity:0} 50%{transform:scale(1.2) translateX(-50%);opacity:1} 100%{transform:scale(1) translateX(-50%);opacity:1} }
       `}</style>
     </div>
   );
@@ -221,7 +218,7 @@ function PangeaBackground() {
 
 export default function SwapWidget() {
   const account = useActiveAccount();
-  const [selectedChain, setSelectedChain] = useState(CHAINS[0]);
+  const [selectedChain, setSelectedChain] = useState(EVM_CHAINS[0]);
   const [fromToken, setFromToken] = useState(TOKENS_BY_CHAIN[1][0]);
   const [toToken, setToToken] = useState(TOKENS_BY_CHAIN[1][1]);
   const [fromAmount, setFromAmount] = useState("");
@@ -241,20 +238,16 @@ export default function SwapWidget() {
   const [priceChanges, setPriceChanges] = useState({});
   const [pricesLoaded, setPricesLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Système de niveaux
   const [swapCount, setSwapCount] = useState(0);
-const [quoteData, setQuoteData] = useState(null);
-const [quoteLoading, setQuoteLoading] = useState(false);
   const [levelUpNotif, setLevelUpNotif] = useState(null);
-  const [showLevelModal, setShowLevelModal] = useState(false);
-const [showDustSweeper, setShowDustSweeper] = useState(false);
+  const [showDustSweeper, setShowDustSweeper] = useState(false);
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
+  const isSolana = selectedChain.id === "solana";
+  const tokens = isSolana ? [] : (TOKENS_BY_CHAIN[selectedChain.id] || []);
   const currentLevel = getLevel(swapCount);
   const progress = getProgress(swapCount);
   const nextLevel = getNextLevel(swapCount);
-
-  const tokens = TOKENS_BY_CHAIN[selectedChain.id] || [];
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -277,19 +270,21 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
   const getPrice = (symbol) => prices[symbol] || FALLBACK_RATES[symbol] || 1;
 
   useEffect(() => {
-    setFromToken(tokens[0]); setToToken(tokens[1]);
-    setFromAmount(""); setToAmount("");
+    if (!isSolana) {
+      const t = tokens;
+      setFromToken(t[0]); setToToken(t[1]);
+      setFromAmount(""); setToAmount("");
+    }
   }, [selectedChain]);
 
   useEffect(() => {
-    if (!fromAmount || isNaN(fromAmount) || Number(fromAmount) === 0) { setToAmount(""); return; }
+    if (isSolana || !fromAmount || isNaN(fromAmount) || Number(fromAmount) === 0) { setToAmount(""); return; }
     const t = setTimeout(async () => {
       try {
         setQuoteLoading(true);
         if (!selectedChain?.id || !fromToken?.address || !toToken?.address) {
           const r = getPrice(fromToken?.symbol) / getPrice(toToken?.symbol);
           setToAmount((Number(fromAmount) * r).toFixed(6));
-          setQuoteLoading(false);
           return;
         }
         const decimals = fromToken?.decimals || 18;
@@ -315,7 +310,7 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
       }
     }, 600);
     return () => clearTimeout(t);
-  }, [fromAmount, fromToken, toToken, prices]);
+  }, [fromAmount, fromToken, toToken, prices, isSolana]);
 
   const handleSwapTokens = () => {
     const tmp = fromToken; setFromToken(toToken); setToToken(tmp);
@@ -325,10 +320,10 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
   const handleSwap = async () => {
     if (!account) { setError("Connecte ton wallet d'abord !"); return; }
     if (!fromAmount || Number(fromAmount) === 0) { setError("Entre un montant."); return; }
+    if (!selectedChain?.id) { setError("Chaîne non sélectionnée."); return; }
+    if (!fromToken?.address) { setError("Token non sélectionné."); return; }
     setError(null); setLoading(true);
     try {
-      if (!selectedChain?.id) { setError("Chaîne non sélectionnée."); setLoading(false); return; }
-      if (!fromToken?.address) { setError("Token non sélectionné."); setLoading(false); return; }
       const decimals = fromToken?.decimals || 18;
       const amountWei = BigInt(Math.floor(Number(fromAmount) * Math.pow(10, decimals))).toString();
       const quote = await getSwapQuote({
@@ -349,19 +344,16 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
           client,
           gas: quote.transaction.gas ? BigInt(quote.transaction.gas) : undefined,
         });
-        const tx = await sendTransaction({
-          account,
-          transaction: prepared,
-        });
+        const tx = await sendTransaction({ account, transaction: prepared });
         const hash = tx.transactionHash;
         setTxHash(hash);
         setSwapHistory(prev => [{ from: fromToken.symbol, to: toToken.symbol, amountIn: fromAmount, amountOut: toAmount, chain: selectedChain.name, hash, time: new Date().toLocaleTimeString() }, ...prev.slice(0, 4)]);
         const newCount = swapCount + 1;
         const oldLevel = getLevel(swapCount);
-        const newLevel = getLevel(newCount);
+        const newLvl = getLevel(newCount);
         setSwapCount(newCount);
-        if (newLevel.name !== oldLevel.name) {
-          setLevelUpNotif(newLevel);
+        if (newLvl.name !== oldLevel.name) {
+          setLevelUpNotif(newLvl);
           setTimeout(() => setLevelUpNotif(null), 4000);
         }
       } else {
@@ -370,7 +362,6 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
     } catch (e) {
       setError("Erreur lors du swap : " + (e.message || "inconnue"));
     }
-
     setLoading(false); setFromAmount(""); setToAmount("");
   };
 
@@ -393,6 +384,8 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
     );
   };
 
+  const accentColor = isSolana ? "#9945FF" : "#D4A017";
+
   return (
     <>
       <style>{`
@@ -410,20 +403,19 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
         .chain-btn { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(212,160,23,0.2); background: rgba(212,160,23,0.06); color: #D4A017; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         .chain-btn:hover { background: rgba(212,160,23,0.12); }
         .level-badge { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s; white-space: nowrap; border: 1px solid; }
-        .level-badge:hover { opacity: 0.8; }
         .page { min-height: 100vh; padding-top: 100px; padding-bottom: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font-family: 'DM Sans', sans-serif; }
         .swap-wrap { width: 100%; max-width: 480px; padding: 0 16px; position: relative; z-index: 10; }
         .tabs { display: flex; align-items: center; gap: 2px; margin-bottom: 8px; }
         .tab { padding: 8px 16px; border-radius: 14px; border: none; background: transparent; color: rgba(255,255,255,0.4); font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .tab.active { color: #D4A017; }
         .card { background: rgba(15,10,5,0.85); border: 1px solid rgba(212,160,23,0.15); border-radius: 24px; padding: 8px; backdrop-filter: blur(20px); box-shadow: 0 8px 48px rgba(0,0,0,0.6); }
+        .solana-card { background: rgba(15,10,5,0.85); border: 1px solid rgba(153,69,255,0.2); border-radius: 24px; padding: 20px; backdrop-filter: blur(20px); box-shadow: 0 8px 48px rgba(0,0,0,0.6); }
         .token-box { background: rgba(20,14,6,0.9); border: 1px solid rgba(212,160,23,0.08); border-radius: 20px; padding: 16px 20px; position: relative; transition: all 0.2s; }
         .token-box:hover { border-color: rgba(212,160,23,0.2); }
         .token-box-label { font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 12px; font-weight: 500; }
         .token-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .token-select-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px 8px 8px; border-radius: 50px; border: 1px solid rgba(212,160,23,0.2); background: linear-gradient(135deg, rgba(212,160,23,0.12), rgba(212,160,23,0.06)); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
         .token-select-btn:hover { border-color: rgba(212,160,23,0.4); transform: scale(1.02); }
-        .token-select-btn.no-token { background: linear-gradient(135deg, #D4A017, #F5C842); color: #0a0600; border: none; padding: 10px 16px; }
         .amount-input { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Cinzel', serif; font-size: 32px; font-weight: 600; text-align: right; outline: none; min-width: 0; }
         .amount-input::placeholder { color: rgba(255,255,255,0.1); }
         .amount-input:read-only { color: rgba(255,255,255,0.4); }
@@ -473,43 +465,24 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
         .price-ticker { display: flex; gap: 20px; overflow-x: auto; padding: 8px 24px; border-bottom: 1px solid rgba(212,160,23,0.06); background: rgba(6,4,8,0.6); scrollbar-width: none; }
         .price-ticker::-webkit-scrollbar { display: none; }
         .price-ticker-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; font-family: 'DM Sans', sans-serif; }
-
-        /* Profile modal */
         .profile-modal { position: absolute; top: 54px; right: 0; width: 300px; background: rgba(12,8,3,0.98); border: 1px solid rgba(212,160,23,0.2); border-radius: 20px; z-index: 300; box-shadow: 0 16px 48px rgba(0,0,0,0.7); padding: 20px; backdrop-filter: blur(20px); }
-        .profile-level-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-        .profile-emoji { font-size: 40px; }
-        .profile-level-name { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; }
-        .profile-swap-count { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
         .progress-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
-        .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
-        .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 16px; }
-        .levels-list { display: flex; flex-direction: column; gap: 8px; }
-        .level-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid; }
-        .level-item-emoji { font-size: 20px; }
-        .level-item-info { flex: 1; }
-        .level-item-name { font-weight: 600; font-size: 13px; }
-        .level-item-req { font-size: 11px; color: rgba(255,255,255,0.35); }
-        .level-item-check { font-size: 14px; }
-
-        /* Level up notification */
-        .level-up-notif { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; background: rgba(12,8,3,0.95); border-radius: 20px; padding: 16px 24px; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); animation: levelUp 0.5s ease forwards; }
+        .level-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid; margin-bottom: 6px; }
+        .level-up-notif { position: fixed; top: 80px; left: 50%; z-index: 9999; background: rgba(12,8,3,0.95); border-radius: 20px; padding: 16px 24px; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); animation: levelUp 0.5s ease forwards; }
       `}</style>
 
       <PangeaBackground />
-{showDustSweeper && <DustSweeper onClose={() => setShowDustSweeper(false)} />}
 
-      {/* LEVEL UP NOTIFICATION */}
       {levelUpNotif && (
-        <div className="level-up-notif" style={{border: `1px solid ${levelUpNotif.color}`}}>
-          <span style={{fontSize: 32}}>{levelUpNotif.emoji}</span>
+        <div className="level-up-notif" style={{border:`1px solid ${levelUpNotif.color}`}}>
+          <span style={{fontSize:32}}>{levelUpNotif.emoji}</span>
           <div>
-            <div style={{fontFamily:"'Cinzel', serif", fontWeight:700, color: levelUpNotif.color, fontSize:15}}>Niveau supérieur !</div>
+            <div style={{fontFamily:"'Cinzel', serif", fontWeight:700, color:levelUpNotif.color, fontSize:15}}>Niveau supérieur !</div>
             <div style={{color:"#fff", fontSize:13}}>Tu es maintenant <strong>{levelUpNotif.name}</strong> 🎉</div>
           </div>
         </div>
       )}
 
-      {/* NAVBAR */}
       <nav className="nav">
         <div className="nav-logo">
           <img src="/logo.png" style={{width:44, height:44, objectFit:"contain"}} />
@@ -517,18 +490,16 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
         </div>
         <div className="nav-links">
           {["Swap", "Explorer", "Pool", "🧹 Sweep"].map(tab => (
-            <button key={tab} className={`nav-link ${activeTab === tab ? "active" : ""}`} onClick={() => { if(tab === "🧹 Sweep") { setShowDustSweeper(true); } else { setActiveTab(tab); } }}>{tab}</button>
+            <button key={tab} className={`nav-link ${activeTab === tab ? "active" : ""}`}
+              onClick={() => { if(tab === "🧹 Sweep") { setShowDustSweeper(true); } else { setActiveTab(tab); } }}>
+              {tab}
+            </button>
           ))}
         </div>
         <div className="nav-right">
-          
-
-{/* Badge de niveau */}
-          <button
-            className="level-badge"
-            style={{borderColor: `${currentLevel.color}40`, background: currentLevel.bg, color: currentLevel.color}}
-            onClick={() => setShowProfile(!showProfile)}
-          >
+          <button className="level-badge"
+            style={{borderColor:`${currentLevel.color}40`, background:currentLevel.bg, color:currentLevel.color}}
+            onClick={() => setShowProfile(!showProfile)}>
             <span style={{fontSize:16}}>{currentLevel.emoji}</span>
             <span style={{fontFamily:"'Cinzel', serif", fontSize:12, fontWeight:700}}>{currentLevel.name}</span>
             <span style={{fontSize:10, opacity:0.6}}>#{swapCount}</span>
@@ -537,123 +508,85 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
           <button className="chain-btn" onClick={() => setShowChainMenu(!showChainMenu)}>
             <TokenLogo src={selectedChain.logo} size={18} />
             {selectedChain.shortName}
-            <span style={{ fontSize: 10, opacity: 0.6 }}>▾</span>
+            <span style={{fontSize:10, opacity:0.6}}>▾</span>
           </button>
 
-          {/* Profile modal */}
           {showProfile && (
             <div className="profile-modal">
-              <div className="profile-level-header">
-                <span className="profile-emoji">{currentLevel.emoji}</span>
+              <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:16}}>
+                <span style={{fontSize:40}}>{currentLevel.emoji}</span>
                 <div>
-                  <div className="profile-level-name" style={{color: currentLevel.color}}>{currentLevel.name}</div>
-                  <div className="profile-swap-count">{swapCount} swaps effectués</div>
+                  <div style={{fontFamily:"'Cinzel', serif", fontSize:18, fontWeight:700, color:currentLevel.color}}>{currentLevel.name}</div>
+                  <div style={{fontSize:12, color:"rgba(255,255,255,0.4)"}}>{swapCount} swaps effectués</div>
                 </div>
               </div>
-
-              {/* Barre de progression */}
               {nextLevel && (
                 <>
                   <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{width: `${progress}%`, background: `linear-gradient(90deg, ${currentLevel.color}, ${nextLevel.color})`}} />
+                    <div style={{height:"100%", borderRadius:4, width:`${progress}%`, background:`linear-gradient(90deg, ${currentLevel.color}, ${nextLevel.color})`, transition:"width 0.5s"}} />
                   </div>
-                  <div className="progress-label">
+                  <div style={{display:"flex", justifyContent:"space-between", fontSize:11, color:"rgba(255,255,255,0.35)", marginBottom:16}}>
                     <span>{currentLevel.name} ({currentLevel.min})</span>
                     <span>{progress}%</span>
                     <span>{nextLevel.name} ({nextLevel.min})</span>
                   </div>
                 </>
               )}
-              {!nextLevel && (
-                <div style={{textAlign:"center", color:"#D4A017", fontFamily:"'Cinzel', serif", fontSize:13, marginBottom:16}}>
-                  🌋 Niveau maximum atteint !
-                </div>
-              )}
-
-              {/* Liste des niveaux */}
-              <div className="levels-list">
-                {LEVELS.map(l => {
-                  const unlocked = swapCount >= l.min;
-                  const isCurrent = l.name === currentLevel.name;
-                  return (
-                    <div key={l.name} className="level-item" style={{
-                      borderColor: isCurrent ? l.color : unlocked ? `${l.color}40` : "rgba(255,255,255,0.06)",
-                      background: isCurrent ? l.bg : unlocked ? "rgba(255,255,255,0.02)" : "transparent",
-                      opacity: unlocked ? 1 : 0.4,
-                    }}>
-                      <span className="level-item-emoji">{l.emoji}</span>
-                      <div className="level-item-info">
-                        <div className="level-item-name" style={{color: isCurrent ? l.color : "#fff"}}>{l.name}</div>
-                        <div className="level-item-req">{l.max === Infinity ? `${l.min}+ swaps` : `${l.min} - ${l.max} swaps`}</div>
-                      </div>
-                      <span className="level-item-check" style={{color: unlocked ? "#00c878" : "transparent"}}>✓</span>
+              {LEVELS.map(l => {
+                const unlocked = swapCount >= l.min;
+                const isCurrent = l.name === currentLevel.name;
+                return (
+                  <div key={l.name} className="level-item" style={{
+                    borderColor: isCurrent ? l.color : unlocked ? `${l.color}40` : "rgba(255,255,255,0.06)",
+                    background: isCurrent ? l.bg : "transparent", opacity: unlocked ? 1 : 0.4,
+                  }}>
+                    <span style={{fontSize:20}}>{l.emoji}</span>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:600, fontSize:13, color: isCurrent ? l.color : "#fff"}}>{l.name}</div>
+                      <div style={{fontSize:11, color:"rgba(255,255,255,0.35)"}}>{l.max === Infinity ? `${l.min}+ swaps` : `${l.min} - ${l.max} swaps`}</div>
                     </div>
-                  );
-                })}
-              </div>
+                    <span style={{color: unlocked ? "#00c878" : "transparent", fontSize:14}}>✓</span>
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {showChainMenu && (
             <div className="chain-dropdown">
-              <div style={{ fontSize: 12, color: "rgba(212,160,23,0.5)", padding: "4px 12px 8px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px" }}>Sélectionner la chaîne</div>
-              {CHAINS.map(c => (
-                <button key={c.id} className={`chain-item ${selectedChain.id === c.id ? "active" : ""}`} onClick={() => { setSelectedChain(c); setShowChainMenu(false); }}>
+              <div style={{fontSize:12, color:"rgba(212,160,23,0.5)", padding:"4px 12px 8px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.8px"}}>Sélectionner la chaîne</div>
+              {EVM_CHAINS.map(c => (
+                <button key={c.id} className={`chain-item ${selectedChain.id === c.id ? "active" : ""}`}
+                  onClick={() => { setSelectedChain(c); setShowChainMenu(false); }}>
                   <TokenLogo src={c.logo} size={24} />
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 13 }}>{c.name}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{c.shortName}</div>
+                    <div style={{fontWeight:600, fontSize:13}}>{c.name}</div>
+                    <div style={{fontSize:11, color:"rgba(255,255,255,0.3)"}}>{c.shortName}</div>
                   </div>
-                  {selectedChain.id === c.id && <span style={{ marginLeft: "auto", color: "#D4A017" }}>✓</span>}
+                  {selectedChain.id === c.id && <span style={{marginLeft:"auto", color:"#D4A017"}}>✓</span>}
                 </button>
               ))}
-              <button className="chain-item" style={{ opacity: 0.4 }}>
+              {/* Solana */}
+              <button className={`chain-item ${isSolana ? "active" : ""}`}
+                onClick={() => { setSelectedChain(SOLANA_CHAIN); setShowChainMenu(false); }}
+                style={{borderTop:"1px solid rgba(153,69,255,0.15)", marginTop:4, paddingTop:12}}>
                 <TokenLogo src={L.SOL} size={24} />
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>Solana</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Bientôt disponible</div>
+                  <div style={{fontWeight:600, fontSize:13}}>Solana</div>
+                  <div style={{fontSize:11, color:"#9945FF"}}>⚡ Via Jupiter</div>
                 </div>
+                {isSolana && <span style={{marginLeft:"auto", color:"#9945FF"}}>✓</span>}
               </button>
             </div>
           )}
 
-          <ConnectButton
-            client={client}
-            wallets={WALLETS}
-            theme="dark"
-            connectButton={{
-              label: "Connecter",
-              style: {
-                background: "linear-gradient(135deg, #D4A017, #F5C842)",
-                color: "#0a0600",
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: "13px",
-                borderRadius: "12px",
-                padding: "8px 16px",
-                border: "none",
-                letterSpacing: "0.5px",
-                whiteSpace: "nowrap",
-              }
-            }}
-            connectedButton={{
-              style: {
-                background: "rgba(212,160,23,0.08)",
-                color: "#D4A017",
-                fontFamily: "'DM Sans', sans-serif",
-                fontWeight: 600,
-                fontSize: "13px",
-                borderRadius: "12px",
-                padding: "8px 12px",
-                border: "1px solid rgba(212,160,23,0.2)",
-                whiteSpace: "nowrap",
-              }
-            }}
+          <ConnectButton client={client} wallets={WALLETS} theme="dark"
+            connectButton={{ label:"Connecter", style:{ background:"linear-gradient(135deg, #D4A017, #F5C842)", color:"#0a0600", fontFamily:"'Cinzel', serif", fontWeight:700, fontSize:"13px", borderRadius:"12px", padding:"8px 16px", border:"none", letterSpacing:"0.5px", whiteSpace:"nowrap" } }}
+            connectedButton={{ style:{ background:"rgba(212,160,23,0.08)", color:"#D4A017", fontFamily:"'DM Sans', sans-serif", fontWeight:600, fontSize:"13px", borderRadius:"12px", padding:"8px 12px", border:"1px solid rgba(212,160,23,0.2)", whiteSpace:"nowrap" } }}
           />
         </div>
       </nav>
 
-      {/* PRICE TICKER */}
       {pricesLoaded && (
         <div className="price-ticker" style={{position:"fixed",top:64,left:0,right:0,zIndex:999}}>
           {Object.entries(COINGECKO_IDS).map(([symbol]) => (
@@ -666,7 +599,6 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
         </div>
       )}
 
-      {/* PAGE */}
       <div className="page" onClick={() => { setShowChainMenu(false); setShowFromList(false); setShowToList(false); setSearchQuery(""); setShowProfile(false); }}>
         <div className="swap-wrap">
           <div className="tabs">
@@ -675,135 +607,140 @@ const [showDustSweeper, setShowDustSweeper] = useState(false);
             ))}
           </div>
 
-          <div className="card" onClick={e => e.stopPropagation()}>
-            <div className="card-header">
-              <span className="card-title">Swap</span>
-              <button className="settings-btn" onClick={() => setShowSettings(!showSettings)}>⚙</button>
+          {/* SOLANA MODE */}
+          {isSolana ? (
+            <div className="card" onClick={e => e.stopPropagation()}>
+              
+              <SolanaSwap />
             </div>
+          ) : (
+            /* EVM MODE */
+            <div className="card" onClick={e => e.stopPropagation()}>
+              <div className="card-header">
+                <span className="card-title">Swap</span>
+                <button className="settings-btn" onClick={() => setShowSettings(!showSettings)}>⚙</button>
+              </div>
 
-            {showSettings && (
-              <div className="settings-panel">
-                <div className="settings-label">Tolérance slippage</div>
-                <div className="slip-row">
-                  {[0.1, 0.5, 1.0, 3.0].map(v => (
-                    <button key={v} className={`slip-btn ${slippage === v ? "active" : ""}`} onClick={() => setSlippage(v)}>{v}%</button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="token-box" style={{ marginBottom: 2 }}>
-              <div className="token-box-label">Vendre</div>
-              <div className="token-row">
-                <button className="token-select-btn" onClick={() => { setShowFromList(!showFromList); setShowToList(false); setSearchQuery(""); }}>
-                  <TokenLogo src={fromToken?.logo} size={24} />
-                  {fromToken?.symbol}
-                  <span style={{ fontSize: 12, opacity: 0.5 }}>▾</span>
-                </button>
-                <input className="amount-input" type="number" placeholder="0" value={fromAmount} onChange={e => setFromAmount(e.target.value)} />
-              </div>
-              <div className="usd-value">
-                {fromAmount && <span>≈ ${(Number(fromAmount) * getPrice(fromToken?.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
-                <PriceTag symbol={fromToken?.symbol} />
-              </div>
-              {showFromList && (
-                <div className="dropdown">
-                  <input className="search-input" placeholder="🔍 Rechercher un token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
-                  <div className="dropdown-list">
-                    {filteredFromTokens.map(t => (
-                      <button key={t.address} className="dropdown-item" onClick={() => { setFromToken(t); setShowFromList(false); setSearchQuery(""); }}>
-                        <TokenLogo src={t.logo} size={36} />
-                        <div>
-                          <div className="dropdown-item-symbol">{t.symbol}</div>
-                          <div className="dropdown-item-name">{t.name}</div>
-                          <div className="dropdown-item-price">${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}</div>
-                        </div>
-                      </button>
+              {showSettings && (
+                <div className="settings-panel">
+                  <div className="settings-label">Tolérance slippage</div>
+                  <div className="slip-row">
+                    {[0.1, 0.5, 1.0, 3.0].map(v => (
+                      <button key={v} className={`slip-btn ${slippage === v ? "active" : ""}`} onClick={() => setSlippage(v)}>{v}%</button>
                     ))}
                   </div>
                 </div>
               )}
-            </div>
 
-            <div className="arrow-wrap">
-              <button className="arrow-btn" onClick={handleSwapTokens}>⇅</button>
-            </div>
+              <div className="token-box" style={{marginBottom:2}}>
+                <div className="token-box-label">Vendre</div>
+                <div className="token-row">
+                  <button className="token-select-btn" onClick={() => { setShowFromList(!showFromList); setShowToList(false); setSearchQuery(""); }}>
+                    <TokenLogo src={fromToken?.logo} size={24} />
+                    {fromToken?.symbol}
+                    <span style={{fontSize:12, opacity:0.5}}>▾</span>
+                  </button>
+                  <input className="amount-input" type="number" placeholder="0" value={fromAmount} onChange={e => setFromAmount(e.target.value)} />
+                </div>
+                <div className="usd-value">
+                  {fromAmount && <span>≈ ${(Number(fromAmount) * getPrice(fromToken?.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
+                  <PriceTag symbol={fromToken?.symbol} />
+                </div>
+                {showFromList && (
+                  <div className="dropdown">
+                    <input className="search-input" placeholder="🔍 Rechercher..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
+                    <div className="dropdown-list">
+                      {filteredFromTokens.map(t => (
+                        <button key={t.address} className="dropdown-item" onClick={() => { setFromToken(t); setShowFromList(false); setSearchQuery(""); }}>
+                          <TokenLogo src={t.logo} size={36} />
+                          <div>
+                            <div className="dropdown-item-symbol">{t.symbol}</div>
+                            <div className="dropdown-item-name">{t.name}</div>
+                            <div className="dropdown-item-price">${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-            <div className="token-box" style={{ marginTop: 2 }}>
-              <div className="token-box-label">Acheter</div>
-              <div className="token-row">
-                {toToken ? (
+              <div className="arrow-wrap">
+                <button className="arrow-btn" onClick={handleSwapTokens}>⇅</button>
+              </div>
+
+              <div className="token-box" style={{marginTop:2}}>
+                <div className="token-box-label">Acheter</div>
+                <div className="token-row">
                   <button className="token-select-btn" onClick={() => { setShowToList(!showToList); setShowFromList(false); setSearchQuery(""); }}>
                     <TokenLogo src={toToken?.logo} size={24} />
                     {toToken?.symbol}
-                    <span style={{ fontSize: 12, opacity: 0.5 }}>▾</span>
+                    <span style={{fontSize:12, opacity:0.5}}>▾</span>
                   </button>
-                ) : (
-                  <button className="token-select-btn no-token" onClick={() => { setShowToList(!showToList); setShowFromList(false); setSearchQuery(""); }}>
-                    Sélectionner ▾
-                  </button>
-                )}
-                <input className="amount-input" type="number" placeholder="0" value={toAmount} readOnly />
-              </div>
-              <div className="usd-value">
-                {toAmount && <span>≈ ${(Number(toAmount) * getPrice(toToken?.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
-                <PriceTag symbol={toToken?.symbol} />
-              </div>
-              {showToList && (
-                <div className="dropdown">
-                  <input className="search-input" placeholder="🔍 Rechercher un token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
-                  <div className="dropdown-list">
-                    {filteredToTokens.map(t => (
-                      <button key={t.address} className="dropdown-item" onClick={() => { setToToken(t); setShowToList(false); setSearchQuery(""); }}>
-                        <TokenLogo src={t.logo} size={36} />
-                        <div>
-                          <div className="dropdown-item-symbol">{t.symbol}</div>
-                          <div className="dropdown-item-name">{t.name}</div>
-                          <div className="dropdown-item-price">${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}</div>
-                        </div>
-                      </button>
-                    ))}
+                  <input className="amount-input" type="number" placeholder="0" value={quoteLoading ? "..." : toAmount} readOnly />
+                </div>
+                <div className="usd-value">
+                  {toAmount && <span>≈ ${(Number(toAmount) * getPrice(toToken?.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
+                  <PriceTag symbol={toToken?.symbol} />
+                </div>
+                {showToList && (
+                  <div className="dropdown">
+                    <input className="search-input" placeholder="🔍 Rechercher..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
+                    <div className="dropdown-list">
+                      {filteredToTokens.map(t => (
+                        <button key={t.address} className="dropdown-item" onClick={() => { setToToken(t); setShowToList(false); setSearchQuery(""); }}>
+                          <TokenLogo src={t.logo} size={36} />
+                          <div>
+                            <div className="dropdown-item-symbol">{t.symbol}</div>
+                            <div className="dropdown-item-name">{t.name}</div>
+                            <div className="dropdown-item-price">${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                )}
+              </div>
+
+              {toAmount && fromAmount && (
+                <div className="quote-box">
+                  <div className="quote-row"><span>Taux</span><span>1 {fromToken?.symbol} = {(getPrice(fromToken?.symbol)/getPrice(toToken?.symbol)).toFixed(6)} {toToken?.symbol}</span></div>
+                  <div className="quote-row"><span>Impact prix</span><span style={{color:"#00c878"}}>{"< 0.01%"}</span></div>
+                  <div className="quote-row"><span>Slippage max</span><span>{slippage}%</span></div>
+                  <div className="quote-row" style={{marginBottom:0}}><span>Route</span><span>{fromToken?.symbol} → {toToken?.symbol}</span></div>
                 </div>
               )}
+
+              {error && <div className="error-box">{error}</div>}
+              {txHash && <div className="success-box">✅ Swap réussi ! {txHash}</div>}
+
+              <button className={`swap-btn ${loading ? "loading" : fromAmount ? "active" : "disabled"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
+                {loading ? "⟳ Swap en cours..." : account ? (fromAmount ? `Swap ${fromToken?.symbol} → ${toToken?.symbol}` : "Entrez un montant") : "Connectez votre wallet"}
+              </button>
             </div>
+          )}
 
-            {toAmount && fromAmount && (
-              <div className="quote-box">
-                <div className="quote-row"><span>Taux</span><span>1 {fromToken?.symbol} = {(getPrice(fromToken?.symbol)/getPrice(toToken?.symbol)).toFixed(6)} {toToken?.symbol}</span></div>
-                <div className="quote-row"><span>Impact prix</span><span style={{ color: "#00c878" }}>{"< 0.01%"}</span></div>
-                <div className="quote-row"><span>Slippage max</span><span>{slippage}%</span></div>
-                <div className="quote-row" style={{ marginBottom: 0 }}><span>Route</span><span>{fromToken?.symbol} → {toToken?.symbol}</span></div>
-              </div>
-            )}
-
-            {error && <div className="error-box">{error}</div>}
-            {txHash && <div className="success-box">✅ Swap réussi ! {txHash}</div>}
-
-            <button className={`swap-btn ${loading ? "loading" : fromAmount ? "active" : "disabled"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
-              {loading ? "⟳ Swap en cours..." : account ? (fromAmount ? `Swap ${fromToken?.symbol} → ${toToken?.symbol}` : "Entrez un montant") : "Connectez votre wallet"}
-            </button>
-          </div>
-
-          {swapHistory.length > 0 && (
+          {swapHistory.length > 0 && !isSolana && (
             <div className="history-card">
               <div className="history-title">Transactions récentes</div>
               {swapHistory.map((s, i) => (
                 <div key={i} className="history-item">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(212,160,23,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>✅</div>
+                  <div style={{display:"flex", alignItems:"center", gap:10}}>
+                    <div style={{width:36, height:36, borderRadius:"50%", background:"rgba(212,160,23,0.1)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16}}>✅</div>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{s.amountIn} {s.from} → {s.amountOut} {s.to}</div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>{s.chain} · {s.time}</div>
+                      <div style={{fontSize:14, fontWeight:600, color:"#fff"}}>{s.amountIn} {s.from} → {s.amountOut} {s.to}</div>
+                      <div style={{fontSize:12, color:"rgba(255,255,255,0.3)"}}>{s.chain} · {s.time}</div>
                     </div>
                   </div>
-                  <span style={{ fontSize: 12, color: "#D4A017", fontWeight: 600, cursor: "pointer" }}>↗</span>
+                  <span style={{fontSize:12, color:"#D4A017", fontWeight:600, cursor:"pointer"}}>↗</span>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {showDustSweeper && <DustSweeper onClose={() => setShowDustSweeper(false)} />}
     </>
   );
 }
