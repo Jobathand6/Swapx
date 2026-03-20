@@ -334,7 +334,7 @@ export default function SolanaSwap() {
       )}
 
       <button className={`sol-swap-btn ${loading ? "loading" : fromAmount ? "active" : "disabled"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
-        {loading ? "⟳ Swap en cours..." : walletAddress ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Entrez un montant") : "Connecter Phantom / Solflare"}
+        {loading ? "⟳ Swap en cours..." : walletAddress ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Entrez un montant") : "Connect a Solana Wallet"}
       </button>
     </div>
   );

@@ -573,7 +573,7 @@ export default function SwapWidget() {
                 <TokenLogo src={L.SOL} size={24} />
                 <div>
                   <div style={{fontWeight:600, fontSize:13}}>Solana</div>
-                  <div style={{fontSize:11, color:"#9945FF"}}>⚡ Via Jupiter</div>
+                  <div style={{fontSize:11, color:"rgba(255,255,255,0.3)"}}>Solana</div>
                 </div>
                 {isSolana && <span style={{marginLeft:"auto", color:"#9945FF"}}>✓</span>}
               </button>
@@ -581,8 +581,8 @@ export default function SwapWidget() {
           )}
 
           <ConnectButton client={client} wallets={WALLETS} theme="dark"
-            connectButton={{ label:"Connecter", style:{ background:"linear-gradient(135deg, #D4A017, #F5C842)", color:"#0a0600", fontFamily:"'Cinzel', serif", fontWeight:700, fontSize:"13px", borderRadius:"12px", padding:"8px 16px", border:"none", letterSpacing:"0.5px", whiteSpace:"nowrap" } }}
-            connectedButton={{ style:{ background:"rgba(212,160,23,0.08)", color:"#D4A017", fontFamily:"'DM Sans', sans-serif", fontWeight:600, fontSize:"13px", borderRadius:"12px", padding:"8px 12px", border:"1px solid rgba(212,160,23,0.2)", whiteSpace:"nowrap" } }}
+            connectButton={{ label:"Connecter", style:{ background:"linear-gradient(135deg, #D4A017, #F5C842)", color:"#0a0600", fontFamily:"'Cinzel', serif", fontWeight:700, fontSize:"13px", borderRadius:"12px", padding:"8px 16px", border:"none", letterSpacing:"0.5px", whiteSpace:"nowrap", height:"36px" } }}
+            connectedButton={{ style:{ background:"rgba(212,160,23,0.08)", color:"#D4A017", fontFamily:"'DM Sans', sans-serif", fontWeight:600, fontSize:"13px", borderRadius:"12px", padding:"8px 12px", border:"1px solid rgba(212,160,23,0.2)", whiteSpace:"nowrap", maxWidth:"140px", overflow:"hidden", textOverflow:"ellipsis" } }}
           />
         </div>
       </nav>

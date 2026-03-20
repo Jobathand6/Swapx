@@ -11,6 +11,7 @@ const client = createThirdwebClient({
 import { ethereum, polygon, bsc, arbitrum, avalanche, base, optimism } from "thirdweb/chains";
 
 const CHAINS_CONFIG = [
+  { id: "solana", name: "Solana",   symbol: "SOL", moralisId: "solana",   color: "#9945FF", chain: null, logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png" },
   { id: 1,      name: "Ethereum",  symbol: "ETH",  moralisId: "eth",       color: "#627EEA", chain: ethereum,  logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
   { id: 137,    name: "Polygon",   symbol: "MATIC", moralisId: "polygon",  color: "#8247E5", chain: polygon,   logo: "https://assets.coingecko.com/coins/images/4713/small/polygon.png" },
   { id: 56,     name: "BNB Chain", symbol: "BNB",  moralisId: "bsc",       color: "#F3BA2F", chain: bsc,       logo: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" },
