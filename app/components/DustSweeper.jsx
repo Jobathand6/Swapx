@@ -2,15 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useActiveAccount } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "demo",
+});
+
+import { ethereum, polygon, bsc, arbitrum, avalanche, base, optimism } from "thirdweb/chains";
 
 const CHAINS_CONFIG = [
-  { id: "0x1",     name: "Ethereum",  symbol: "ETH",  moralisId: "eth",       color: "#627EEA", logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
-  { id: "0x89",    name: "Polygon",   symbol: "MATIC", moralisId: "polygon",  color: "#8247E5", logo: "https://assets.coingecko.com/coins/images/4713/small/polygon.png" },
-  { id: "0x38",    name: "BNB Chain", symbol: "BNB",  moralisId: "bsc",       color: "#F3BA2F", logo: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" },
-  { id: "0xa4b1",  name: "Arbitrum",  symbol: "ETH",  moralisId: "arbitrum",  color: "#28A0F0", logo: "https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg" },
-  { id: "0xa86a",  name: "Avalanche", symbol: "AVAX", moralisId: "avalanche", color: "#E84142", logo: "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png" },
-  { id: "0x2105",  name: "Base",      symbol: "ETH",  moralisId: "base",      color: "#0052FF", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg" },
-  { id: "0xa",     name: "Optimism",  symbol: "ETH",  moralisId: "optimism",  color: "#FF0420", logo: "https://assets.coingecko.com/coins/images/25244/small/Optimism.png" },
+  { id: 1,      name: "Ethereum",  symbol: "ETH",  moralisId: "eth",       color: "#627EEA", chain: ethereum,  logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
+  { id: 137,    name: "Polygon",   symbol: "MATIC", moralisId: "polygon",  color: "#8247E5", chain: polygon,   logo: "https://assets.coingecko.com/coins/images/4713/small/polygon.png" },
+  { id: 56,     name: "BNB Chain", symbol: "BNB",  moralisId: "bsc",       color: "#F3BA2F", chain: bsc,       logo: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" },
+  { id: 42161,  name: "Arbitrum",  symbol: "ETH",  moralisId: "arbitrum",  color: "#28A0F0", chain: arbitrum,  logo: "https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg" },
+  { id: 43114,  name: "Avalanche", symbol: "AVAX", moralisId: "avalanche", color: "#E84142", chain: avalanche, logo: "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png" },
+  { id: 8453,   name: "Base",      symbol: "ETH",  moralisId: "base",      color: "#0052FF", chain: base,      logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg" },
+  { id: 10,     name: "Optimism",  symbol: "ETH",  moralisId: "optimism",  color: "#FF0420", chain: optimism,  logo: "https://assets.coingecko.com/coins/images/25244/small/Optimism.png" },
 ];
 
 function TokenLogo({ src, size = 28 }) {
@@ -50,12 +57,17 @@ export default function DustSweeper({ onClose }) {
 
     try {
       const res = await fetch(
-        `https://deep-index.moralis.io/api/v2.2/${account.address}/erc20?chain=${selectedChain.moralisId}`,
-        { headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY } }
+        `https://deep-index.moralis.io/api/v2.2/${account.address}/erc20?chain=${selectedChain.moralisId}&limit=100`,
+        { headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY, "Accept": "application/json" } }
       );
       const data = await res.json();
 
-      if (!data.result) throw new Error("Aucun token trouvé");
+      if (!data.result || data.result.length === 0) {
+        setTokens([]);
+        setScanned(true);
+        setLoading(false);
+        return;
+      }
 
       const tokensWithPrice = await Promise.all(
         data.result.map(async (token) => {
@@ -102,7 +114,8 @@ export default function DustSweeper({ onClose }) {
       setSelectedTokens(dustTokens.map(t => t.address));
       setScanned(true);
     } catch (e) {
-      setError("Erreur lors du scan. Vérifie ta clé Moralis et ta connexion.");
+      console.error("Scan error:", e);
+      setError("Erreur : " + (e.message || "inconnue"));
     }
     setLoading(false);
   };
@@ -118,14 +131,55 @@ export default function DustSweeper({ onClose }) {
 
   const handleSweep = async () => {
     if (selectedTokens.length === 0) { setError("Sélectionne au moins un token."); return; }
+    if (!account) { setError("Connecte ton wallet d'abord !"); return; }
     setSweeping(true);
     setError(null);
-    await new Promise(r => setTimeout(r, 3000));
+
+    let successCount = 0;
+    let totalSwapped = 0;
+
+    for (const tokenAddress of selectedTokens) {
+      const token = tokens.find(t => t.address === tokenAddress);
+      if (!token) continue;
+
+      try {
+        const sellAmount = BigInt(Math.floor(Number(token.balance) * Math.pow(10, token.decimals))).toString();
+        const buyToken = targetToken === "ETH" ? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" : targetToken;
+
+        const params = new URLSearchParams({
+          chainId: selectedChain.id.toString(),
+          sellToken: token.address,
+          buyToken,
+          sellAmount,
+          taker: account.address,
+        });
+
+        const res = await fetch(`/api/dust?${params}`);
+        const quote = await res.json();
+
+        if (quote?.transaction) {
+          const { sendTransaction, prepareTransaction } = await import("thirdweb");
+          const prepared = prepareTransaction({
+            to: quote.transaction.to,
+            data: quote.transaction.data,
+            value: quote.transaction.value ? BigInt(quote.transaction.value) : 0n,
+            chain: selectedChain.chain,
+            client,
+          });
+          await sendTransaction({ account, transaction: prepared });
+          successCount++;
+          totalSwapped += token.valueUsd;
+        }
+      } catch (e) {
+        console.error(`Erreur swap ${token.symbol}:`, e);
+      }
+    }
+
     setSweptResult({
-      count: selectedTokens.length,
-      totalValue: totalValue.toFixed(2),
+      count: successCount,
+      totalValue: totalSwapped.toFixed(2),
       receivedToken: targetToken,
-      estimatedReceived: (totalValue * 0.97).toFixed(6),
+      estimatedReceived: (totalSwapped * 0.97).toFixed(6),
     });
     setSweeping(false);
   };
