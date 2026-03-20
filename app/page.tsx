@@ -268,7 +268,18 @@ export default function LandingPage() {
         <p className="section-desc">Pangeon supporte les principales blockchains EVM ainsi que Solana, avec d'autres chaînes à venir.</p>
         <div className="chains-grid">
           {CHAINS.map(c => (
-            <div key={c.symbol} className="chain-card" style={{"--cc": c.color}}>
+            <div key={c.symbol} className="chain-card" style={{"--cc": c.color} as React.CSSProperties}>
+```
+
+**`Ctrl+S`** puis :
+```
+git add .
+```
+```
+git commit -m "fix css variables typescript"
+```
+```
+git push
               <img src={c.logo} width={44} height={44} style={{borderRadius:"50%", objectFit:"cover"}} onError={e => e.target.style.display="none"} />
               <div className="chain-card-info">
                 <div className="chain-card-name">{c.name}</div>
