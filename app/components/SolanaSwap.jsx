@@ -13,7 +13,15 @@ const SOLANA_COINGECKO_IDS = {
   JUP:  "jupiter-exchange-solana",
   RAY:  "raydium",
   WIF:  "dogwifcoin",
-  PYTH: "pyth-network",
+  PYTH:  "pyth-network",
+  TRUMP: "official-trump",
+  PENGU: "pudgy-penguins",
+  FART:  "fartcoin",
+  PIPPIN:"pippin",
+  ORCA:  "orca",
+  MSOL:  "msol",
+  PUMP:  "pump-fun",
+  SKR:   "seeker-2",
 };
 
 const POPULAR_TOKENS = [
@@ -23,8 +31,16 @@ const POPULAR_TOKENS = [
   { symbol: "BONK", name: "Bonk",        mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", logo: "https://assets.coingecko.com/coins/images/28600/small/bonk.jpg", decimals: 5 },
   { symbol: "JUP",  name: "Jupiter",     mint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",  logo: "https://assets.coingecko.com/coins/images/34188/small/jup.png", decimals: 6 },
   { symbol: "RAY",  name: "Raydium",     mint: "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R", logo: "https://assets.coingecko.com/coins/images/13928/small/PSigc4ie_400x400.jpg", decimals: 6 },
-  { symbol: "WIF",  name: "dogwifhat",   mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", logo: "https://assets.coingecko.com/coins/images/33566/small/wif.png", decimals: 6 },
-  { symbol: "PYTH", name: "Pyth Network",mint: "HZ1JovNiVvGrCNiiYWxoK4zcGRLNQ5r2YFcSNFQkSXd8", logo: "https://assets.coingecko.com/coins/images/31924/small/pyth.png", decimals: 6 },
+  { symbol: "WIF",  name: "dogwifhat",   mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", logo: "https://assets.coingecko.com/coins/images/33566/thumb/dogwifhat.png", decimals: 6 },
+  { symbol: "PYTH",  name: "Pyth Network",  mint: "HZ1JovNiVvGrCNiiYWxoK4zcGRLNQ5r2YFcSNFQkSXd8", logo: "https://assets.coingecko.com/coins/images/31924/small/pyth.png", decimals: 6 },
+  { symbol: "TRUMP", name: "Official Trump", mint: "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN.png", decimals: 6 },
+  { symbol: "PENGU", name: "Pudgy Penguins", mint: "2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv.png", decimals: 6 },
+  { symbol: "FART",  name: "Fartcoin",       mint: "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump.png", decimals: 6 },
+  { symbol: "PIPPIN",name: "Pippin",         mint: "Dfh5DzRgSvvCFDoYc2ciTkMrbDfRKybA4SoFbPmApump", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/Dfh5DzRgSvvCFDoYc2ciTkMrbDfRKybA4SoFbPmApump.png", decimals: 6 },
+  { symbol: "ORCA",  name: "Orca",           mint: "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE.png", decimals: 6 },
+  { symbol: "MSOL",  name: "Marinade SOL",   mint: "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So", logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png", decimals: 9 },
+  { symbol: "PUMP",  name: "Pump.fun",       mint: "PUMPamiWHCBPYQFBBZ1rFMPAHkFVMQDDBqujPJKMump", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/PUMPamiWHCBPYQFBBZ1rFMPAHkFVMQDDBqujPJKMump.png", decimals: 6 },
+  { symbol: "SKR",   name: "Seeker",         mint: "SKRhMahBH6MbCRFTWLHFVHGBGnHJCBYhXuBY1dpump", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/SKRhMahBH6MbCRFTWLHFVHGBGnHJCBYhXuBY1dpump.png", decimals: 6 },
 ];
 
 function TokenLogo({ src, size = 28 }) {
