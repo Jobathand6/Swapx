@@ -266,23 +266,7 @@ export default function SolanaSwap() {
           {fromAmount && <span>≈ ${(Number(fromAmount) * getPrice(fromToken.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
           <PriceTag symbol={fromToken.symbol} />
         </div>
-        {showFromList && (
-          <div className="sol-dropdown">
-            <input className="sol-search" placeholder="🔍 Rechercher..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
-            <div className="sol-dropdown-list">
-              {filteredFrom.map(t => (
-                <button key={t.mint} className="sol-dropdown-item" onClick={() => { setFromToken(t); setShowFromList(false); setSearchQuery(""); }}>
-                  <TokenLogo src={t.logo} size={36} />
-                  <div>
-                    <div style={{fontWeight:700, fontSize:14}}>{t.symbol}</div>
-                    <div style={{fontSize:11, color:"rgba(255,255,255,0.3)"}}>{t.name}</div>
-                    {prices[t.symbol] && <div style={{fontSize:11, color:"rgba(153,69,255,0.6)"}}>${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}</div>}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        
       </div>
 
       {/* ARROW */}
@@ -305,23 +289,7 @@ export default function SolanaSwap() {
           {toAmount && <span>≈ ${(Number(toAmount) * getPrice(toToken.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
           <PriceTag symbol={toToken.symbol} />
         </div>
-        {showToList && (
-          <div className="sol-dropdown">
-            <input className="sol-search" placeholder="🔍 Rechercher..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
-            <div className="sol-dropdown-list">
-              {filteredTo.map(t => (
-                <button key={t.mint} className="sol-dropdown-item" onClick={() => { setToToken(t); setShowToList(false); setSearchQuery(""); }}>
-                  <TokenLogo src={t.logo} size={36} />
-                  <div>
-                    <div style={{fontWeight:700, fontSize:14}}>{t.symbol}</div>
-                    <div style={{fontSize:11, color:"rgba(255,255,255,0.3)"}}>{t.name}</div>
-                    {prices[t.symbol] && <div style={{fontSize:11, color:"rgba(153,69,255,0.6)"}}>${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}</div>}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        
       </div>
 
       {/* Quote */}
@@ -346,6 +314,43 @@ export default function SolanaSwap() {
       {txHash && (
         <div style={{margin:"6px 0", padding:"10px 14px", borderRadius:14, background:"rgba(20,241,149,0.08)", border:"1px solid rgba(20,241,149,0.2)", color:"#14F195", fontSize:13}}>
           ✅ Swap réussi ! <a href={`https://solscan.io/tx/${txHash}`} target="_blank" rel="noreferrer" style={{color:"#14F195"}}>Voir sur Solscan ↗</a>
+        </div>
+      )}
+
+      {/* TOKEN MODAL SOLANA */}
+      {(showFromList || showToList) && (
+        <div onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(6px)"}}>
+          <div onClick={e => e.stopPropagation()} style={{background:"rgba(12,8,3,0.98)", border:"1px solid rgba(153,69,255,0.2)", borderRadius:24, width:"100%", maxWidth:420, maxHeight:"80vh", display:"flex", flexDirection:"column", boxShadow:"0 24px 80px rgba(0,0,0,0.8)"}}>
+            <div style={{padding:"20px 20px 16px", borderBottom:"1px solid rgba(153,69,255,0.1)"}}>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16}}>
+                <span style={{fontFamily:"'Cinzel', serif", fontSize:16, fontWeight:700, color:"#9945FF"}}>Sélectionner un token</span>
+                <button onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{width:32, height:32, borderRadius:8, border:"none", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.5)", fontSize:16, cursor:"pointer"}}>✕</button>
+              </div>
+              <input autoFocus placeholder="🔍 Rechercher un token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                style={{width:"100%", padding:"12px 16px", borderRadius:14, border:"1px solid rgba(153,69,255,0.15)", background:"rgba(153,69,255,0.05)", color:"#fff", fontFamily:"'DM Sans', sans-serif", fontSize:14, outline:"none"}}
+              />
+            </div>
+            <div style={{overflowY:"auto", padding:"8px 12px", scrollbarWidth:"thin", scrollbarColor:"rgba(153,69,255,0.2) transparent"}}>
+              {(showFromList ? filteredFrom : filteredTo).map(t => (
+                <button key={t.mint} onClick={() => { showFromList ? setFromToken(t) : setToToken(t); setShowFromList(false); setShowToList(false); setSearchQuery(""); }}
+                  style={{display:"flex", alignItems:"center", gap:14, width:"100%", padding:"12px 14px", background:"transparent", border:"none", borderRadius:14, color:"#fff", cursor:"pointer", transition:"background 0.15s", fontFamily:"'DM Sans', sans-serif", textAlign:"left"}}
+                  onMouseOver={e => e.currentTarget.style.background="rgba(153,69,255,0.06)"}
+                  onMouseOut={e => e.currentTarget.style.background="transparent"}
+                >
+                  <TokenLogo src={t.logo} size={40} />
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700, fontSize:15}}>{t.symbol}</div>
+                    <div style={{fontSize:12, color:"rgba(255,255,255,0.35)"}}>{t.name}</div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:13, color:"rgba(153,69,255,0.8)", fontWeight:600}}>
+                      {prices[t.symbol] ? `$${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}` : ""}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
