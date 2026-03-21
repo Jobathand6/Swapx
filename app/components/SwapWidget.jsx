@@ -489,7 +489,7 @@ export default function SwapWidget() {
           <span className="nav-logo-text">PANGEON</span>
         </div>
         <div className="nav-links">
-          {["Swap", "Explorer", "Pool", "🧹 Sweep"].map(tab => (
+          {["🧹 Sweep"].map(tab => (
             <button key={tab} className={`nav-link ${activeTab === tab ? "active" : ""}`}
               onClick={() => { if(tab === "🧹 Sweep") { setShowDustSweeper(true); } else { setActiveTab(tab); } }}>
               {tab}
@@ -602,9 +602,7 @@ export default function SwapWidget() {
       <div className="page" onClick={() => { setShowChainMenu(false); setShowFromList(false); setShowToList(false); setSearchQuery(""); setShowProfile(false); }}>
         <div className="swap-wrap">
           <div className="tabs">
-            {["Swap", "Limite", "Envoyer"].map(t => (
-              <button key={t} className={`tab ${t === "Swap" ? "active" : ""}`}>{t}</button>
-            ))}
+            
           </div>
 
           {/* SOLANA MODE */}
