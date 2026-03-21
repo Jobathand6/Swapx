@@ -22,12 +22,12 @@ const WALLETS = [
 ];
 
 const LEVELS = [
-  { name: "Fossil",   emoji: "🪨", min: 0,     max: 49,   color: "#8B7355", bg: "rgba(139,115,85,0.15)" },
-  { name: "Oeuf",     emoji: "🥚", min: 50,    max: 499,  color: "#C8B89A", bg: "rgba(200,184,154,0.15)" },
-  { name: "Reptile",  emoji: "🦎", min: 500,   max: 1999, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
-  { name: "Raptor",   emoji: "🦴", min: 2000,  max: 4999, color: "#2196F3", bg: "rgba(33,150,243,0.15)" },
-  { name: "Rex",      emoji: "🦖", min: 5000,  max: 9999, color: "#FF5722", bg: "rgba(255,87,34,0.15)" },
-  { name: "Pangéen",  emoji: "🌋", min: 10000, max: Infinity, color: "#D4A017", bg: "rgba(212,160,23,0.15)" },
+  { name: "Fossil",  emoji: "🪨", min: 0,     max: 49,   color: "#8B7355", bg: "rgba(139,115,85,0.15)" },
+  { name: "Oeuf",    emoji: "🥚", min: 50,    max: 499,  color: "#C8B89A", bg: "rgba(200,184,154,0.15)" },
+  { name: "Reptile", emoji: "🦎", min: 500,   max: 1999, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
+  { name: "Raptor",  emoji: "🦴", min: 2000,  max: 4999, color: "#2196F3", bg: "rgba(33,150,243,0.15)" },
+  { name: "Rex",     emoji: "🦖", min: 5000,  max: 9999, color: "#FF5722", bg: "rgba(255,87,34,0.15)" },
+  { name: "Pangéen", emoji: "🌋", min: 10000, max: Infinity, color: "#D4A017", bg: "rgba(212,160,23,0.15)" },
 ];
 
 function getLevel(swapCount) {
@@ -107,71 +107,70 @@ const EVM_CHAINS = [
 ];
 
 const SOLANA_CHAIN = { id: "solana", name: "Solana", shortName: "SOL", color: "#9945FF", logo: L.SOL };
-const ALL_CHAINS = [...EVM_CHAINS, SOLANA_CHAIN];
 
 const TOKENS_BY_CHAIN = {
   1: [
-    { symbol: "ETH",  name: "Ethereum",    address: "NATIVE", logo: L.ETH },
-    { symbol: "USDC", name: "USD Coin",    address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", logo: L.USDC },
-    { symbol: "USDT", name: "Tether",      address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", logo: L.USDT },
-    { symbol: "WBTC", name: "Wrapped BTC", address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", logo: L.WBTC },
-    { symbol: "DAI",  name: "Dai",         address: "0x6B175474E89094C44Da98b954EedeAC495271d0F", logo: L.DAI },
-    { symbol: "UNI",  name: "Uniswap",     address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984", logo: L.UNI },
-    { symbol: "LINK", name: "Chainlink",   address: "0x514910771AF9Ca656af840dff83E8264EcF986CA", logo: L.LINK },
-    { symbol: "AAVE", name: "Aave",        address: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9", logo: L.AAVE },
-    { symbol: "SHIB", name: "Shiba Inu",   address: "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE", logo: L.SHIB },
-    { symbol: "PEPE", name: "Pepe",        address: "0x6982508145454Ce325dDbE47a25d4ec3d2311933", logo: L.PEPE },
-    { symbol: "LDO",  name: "Lido DAO",    address: "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32", logo: L.LDO },
-    { symbol: "MKR",  name: "Maker",       address: "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2", logo: L.MKR },
-    { symbol: "CRV",  name: "Curve",       address: "0xD533a949740bb3306d119CC777fa900bA034cd52", logo: L.CRV },
-    { symbol: "GRT",  name: "The Graph",   address: "0xc944E90C64B2c07662A292be6244BDf05Cda44a7", logo: L.GRT },
-    { symbol: "SAND", name: "Sandbox",     address: "0x3845badAde8e6dFF049820680d1F14bD3903a5d0", logo: L.SAND },
-    { symbol: "MANA", name: "Decentraland",address: "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942", logo: L.MANA },
-    { symbol: "APE",  name: "ApeCoin",     address: "0x4d224452801ACEd8B2F0aebE155379bb5D594381", logo: L.APE },
-    { symbol: "LRC",  name: "Loopring",    address: "0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD", logo: L.LRC },
-    { symbol: "IMX",  name: "Immutable X", address: "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF", logo: L.IMX },
+    { symbol: "ETH",  name: "Ethereum",    address: "NATIVE", logo: L.ETH, decimals: 18 },
+    { symbol: "USDC", name: "USD Coin",    address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", logo: L.USDC, decimals: 6 },
+    { symbol: "USDT", name: "Tether",      address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", logo: L.USDT, decimals: 6 },
+    { symbol: "WBTC", name: "Wrapped BTC", address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", logo: L.WBTC, decimals: 8 },
+    { symbol: "DAI",  name: "Dai",         address: "0x6B175474E89094C44Da98b954EedeAC495271d0F", logo: L.DAI, decimals: 18 },
+    { symbol: "UNI",  name: "Uniswap",     address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984", logo: L.UNI, decimals: 18 },
+    { symbol: "LINK", name: "Chainlink",   address: "0x514910771AF9Ca656af840dff83E8264EcF986CA", logo: L.LINK, decimals: 18 },
+    { symbol: "AAVE", name: "Aave",        address: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9", logo: L.AAVE, decimals: 18 },
+    { symbol: "SHIB", name: "Shiba Inu",   address: "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE", logo: L.SHIB, decimals: 18 },
+    { symbol: "PEPE", name: "Pepe",        address: "0x6982508145454Ce325dDbE47a25d4ec3d2311933", logo: L.PEPE, decimals: 18 },
+    { symbol: "LDO",  name: "Lido DAO",    address: "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32", logo: L.LDO, decimals: 18 },
+    { symbol: "MKR",  name: "Maker",       address: "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2", logo: L.MKR, decimals: 18 },
+    { symbol: "CRV",  name: "Curve",       address: "0xD533a949740bb3306d119CC777fa900bA034cd52", logo: L.CRV, decimals: 18 },
+    { symbol: "GRT",  name: "The Graph",   address: "0xc944E90C64B2c07662A292be6244BDf05Cda44a7", logo: L.GRT, decimals: 18 },
+    { symbol: "SAND", name: "Sandbox",     address: "0x3845badAde8e6dFF049820680d1F14bD3903a5d0", logo: L.SAND, decimals: 18 },
+    { symbol: "MANA", name: "Decentraland",address: "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942", logo: L.MANA, decimals: 18 },
+    { symbol: "APE",  name: "ApeCoin",     address: "0x4d224452801ACEd8B2F0aebE155379bb5D594381", logo: L.APE, decimals: 18 },
+    { symbol: "LRC",  name: "Loopring",    address: "0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD", logo: L.LRC, decimals: 18 },
+    { symbol: "IMX",  name: "Immutable X", address: "0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF", logo: L.IMX, decimals: 18 },
   ],
   137: [
-    { symbol: "MATIC",name: "Polygon",     address: "NATIVE", logo: L.MATIC },
-    { symbol: "USDC", name: "USD Coin",    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", logo: L.USDC },
-    { symbol: "USDT", name: "Tether",      address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", logo: L.USDT },
-    { symbol: "WETH", name: "Wrapped ETH", address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619", logo: L.WETH },
-    { symbol: "DAI",  name: "Dai",         address: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", logo: L.DAI },
-    { symbol: "LINK", name: "Chainlink",   address: "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39", logo: L.LINK },
-    { symbol: "AAVE", name: "Aave",        address: "0xD6DF932A45C0f255f85145f286eA0b292B21C90B", logo: L.AAVE },
+    { symbol: "MATIC",name: "Polygon",     address: "NATIVE", logo: L.MATIC, decimals: 18 },
+    { symbol: "USDC", name: "USD Coin",    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", logo: L.USDC, decimals: 6 },
+    { symbol: "USDT", name: "Tether",      address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", logo: L.USDT, decimals: 6 },
+    { symbol: "WETH", name: "Wrapped ETH", address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619", logo: L.WETH, decimals: 18 },
+    { symbol: "DAI",  name: "Dai",         address: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", logo: L.DAI, decimals: 18 },
+    { symbol: "LINK", name: "Chainlink",   address: "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39", logo: L.LINK, decimals: 18 },
+    { symbol: "AAVE", name: "Aave",        address: "0xD6DF932A45C0f255f85145f286eA0b292B21C90B", logo: L.AAVE, decimals: 18 },
   ],
   56: [
-    { symbol: "BNB",  name: "BNB",         address: "NATIVE", logo: L.BNB },
-    { symbol: "BUSD", name: "BUSD",        address: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56", logo: L.BUSD },
-    { symbol: "USDT", name: "Tether",      address: "0x55d398326f99059fF775485246999027B3197955", logo: L.USDT },
-    { symbol: "CAKE", name: "PancakeSwap", address: "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", logo: L.CAKE },
-    { symbol: "ETH",  name: "Ethereum",    address: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", logo: L.ETH },
-    { symbol: "LINK", name: "Chainlink",   address: "0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD", logo: L.LINK },
+    { symbol: "BNB",  name: "BNB",         address: "NATIVE", logo: L.BNB, decimals: 18 },
+    { symbol: "BUSD", name: "BUSD",        address: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56", logo: L.BUSD, decimals: 18 },
+    { symbol: "USDT", name: "Tether",      address: "0x55d398326f99059fF775485246999027B3197955", logo: L.USDT, decimals: 18 },
+    { symbol: "CAKE", name: "PancakeSwap", address: "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82", logo: L.CAKE, decimals: 18 },
+    { symbol: "ETH",  name: "Ethereum",    address: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", logo: L.ETH, decimals: 18 },
+    { symbol: "LINK", name: "Chainlink",   address: "0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD", logo: L.LINK, decimals: 18 },
   ],
   42161: [
-    { symbol: "ETH",  name: "Ethereum",    address: "NATIVE", logo: L.ETH },
-    { symbol: "ARB",  name: "Arbitrum",    address: "0x912CE59144191C1204E64559FE8253a0e49E6548", logo: L.ARB },
-    { symbol: "USDC", name: "USD Coin",    address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", logo: L.USDC },
-    { symbol: "USDT", name: "Tether",      address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", logo: L.USDT },
-    { symbol: "LINK", name: "Chainlink",   address: "0xf97f4df75117a78c1A5a0DBb814Af92458539FB4", logo: L.LINK },
-    { symbol: "AAVE", name: "Aave",        address: "0xba5DdD1f9d7F570dc94a51479a000E3BCE967196", logo: L.AAVE },
+    { symbol: "ETH",  name: "Ethereum",    address: "NATIVE", logo: L.ETH, decimals: 18 },
+    { symbol: "ARB",  name: "Arbitrum",    address: "0x912CE59144191C1204E64559FE8253a0e49E6548", logo: L.ARB, decimals: 18 },
+    { symbol: "USDC", name: "USD Coin",    address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", logo: L.USDC, decimals: 6 },
+    { symbol: "USDT", name: "Tether",      address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", logo: L.USDT, decimals: 6 },
+    { symbol: "LINK", name: "Chainlink",   address: "0xf97f4df75117a78c1A5a0DBb814Af92458539FB4", logo: L.LINK, decimals: 18 },
+    { symbol: "AAVE", name: "Aave",        address: "0xba5DdD1f9d7F570dc94a51479a000E3BCE967196", logo: L.AAVE, decimals: 18 },
   ],
   43114: [
-    { symbol: "AVAX", name: "Avalanche",   address: "NATIVE", logo: L.AVAX },
-    { symbol: "USDC", name: "USD Coin",    address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", logo: L.USDC },
-    { symbol: "USDT", name: "Tether",      address: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", logo: L.USDT },
-    { symbol: "WETH", name: "Wrapped ETH", address: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB", logo: L.WETH },
+    { symbol: "AVAX", name: "Avalanche",   address: "NATIVE", logo: L.AVAX, decimals: 18 },
+    { symbol: "USDC", name: "USD Coin",    address: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", logo: L.USDC, decimals: 6 },
+    { symbol: "USDT", name: "Tether",      address: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", logo: L.USDT, decimals: 6 },
+    { symbol: "WETH", name: "Wrapped ETH", address: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB", logo: L.WETH, decimals: 18 },
   ],
   8453: [
-    { symbol: "ETH",  name: "Ethereum",    address: "NATIVE", logo: L.ETH },
-    { symbol: "USDC", name: "USD Coin",    address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: L.USDC },
-    { symbol: "DAI",  name: "Dai",         address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", logo: L.DAI },
+    { symbol: "ETH",  name: "Ethereum",    address: "NATIVE", logo: L.ETH, decimals: 18 },
+    { symbol: "USDC", name: "USD Coin",    address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: L.USDC, decimals: 6 },
+    { symbol: "DAI",  name: "Dai",         address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", logo: L.DAI, decimals: 18 },
   ],
   10: [
-    { symbol: "ETH",  name: "Ethereum",    address: "NATIVE", logo: L.ETH },
-    { symbol: "OP",   name: "Optimism",    address: "0x4200000000000000000000000000000000000042", logo: L.OP },
-    { symbol: "USDC", name: "USD Coin",    address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607", logo: L.USDC },
-    { symbol: "USDT", name: "Tether",      address: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58", logo: L.USDT },
+    { symbol: "ETH",  name: "Ethereum",    address: "NATIVE", logo: L.ETH, decimals: 18 },
+    { symbol: "OP",   name: "Optimism",    address: "0x4200000000000000000000000000000000000042", logo: L.OP, decimals: 18 },
+    { symbol: "USDC", name: "USD Coin",    address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607", logo: L.USDC, decimals: 6 },
+    { symbol: "USDT", name: "Tether",      address: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58", logo: L.USDT, decimals: 6 },
   ],
 };
 
@@ -202,14 +201,10 @@ function PangeaBackground() {
       <div style={{position:"absolute",bottom:0,right:"6%",width:0,height:0,borderLeft:"170px solid transparent",borderRight:"170px solid transparent",borderBottom:"350px solid #120800"}} />
       <div style={{position:"absolute",bottom:200,right:"calc(6% + 30px)",width:260,height:150,background:"#ff4400",borderRadius:"50%",filter:"blur(60px)",opacity:0.13,animation:"pulse 4.5s ease-in-out infinite",animationDelay:"2s"}} />
       <div style={{position:"absolute",bottom:0,left:"1%",width:0,height:0,borderLeft:"25px solid transparent",borderRight:"25px solid transparent",borderBottom:"180px solid #0d0900"}} />
-      <div style={{position:"absolute",bottom:0,left:"3%",width:0,height:0,borderLeft:"20px solid transparent",borderRight:"20px solid transparent",borderBottom:"220px solid #0a0700"}} />
       <div style={{position:"absolute",bottom:0,right:"1%",width:0,height:0,borderLeft:"28px solid transparent",borderRight:"28px solid transparent",borderBottom:"200px solid #0d0900"}} />
-      <div style={{position:"absolute",bottom:0,right:"3%",width:0,height:0,borderLeft:"22px solid transparent",borderRight:"22px solid transparent",borderBottom:"240px solid #0a0700"}} />
       <div style={{position:"absolute",bottom:0,left:0,right:0,height:120,background:"linear-gradient(180deg,transparent,rgba(30,15,0,0.6))"}} />
-      <div style={{position:"absolute",bottom:60,left:"-10%",width:"50%",height:100,background:"rgba(40,20,0,0.3)",borderRadius:"50%",filter:"blur(40px)",animation:"mistMove 10s ease-in-out infinite"}} />
       <style>{`
         @keyframes pulse { 0%,100%{opacity:0.1} 50%{opacity:0.2} }
-        @keyframes mistMove { 0%,100%{transform:translateX(0)} 50%{transform:translateX(40px)} }
         @keyframes levelUp { 0%{transform:scale(0.5) translateX(-50%);opacity:0} 50%{transform:scale(1.2) translateX(-50%);opacity:1} 100%{transform:scale(1) translateX(-50%);opacity:1} }
       `}</style>
     </div>
@@ -229,7 +224,6 @@ export default function SwapWidget() {
   const [showSettings, setShowSettings] = useState(false);
   const [showChainMenu, setShowChainMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [activeTab, setActiveTab] = useState("Swap");
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState(null);
   const [error, setError] = useState(null);
@@ -242,6 +236,7 @@ export default function SwapWidget() {
   const [levelUpNotif, setLevelUpNotif] = useState(null);
   const [showDustSweeper, setShowDustSweeper] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
+  const [balances, setBalances] = useState({});
 
   const isSolana = selectedChain.id === "solana";
   const tokens = isSolana ? [] : (TOKENS_BY_CHAIN[selectedChain.id] || []);
@@ -249,6 +244,7 @@ export default function SwapWidget() {
   const progress = getProgress(swapCount);
   const nextLevel = getNextLevel(swapCount);
 
+  // Fetch prices
   useEffect(() => {
     const fetchPrices = async () => {
       try {
@@ -267,18 +263,67 @@ export default function SwapWidget() {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch balances
+  useEffect(() => {
+    const fetchBalances = async () => {
+      if (!account?.address || isSolana) {
+        setBalances({});
+        return;
+      }
+      try {
+        const chainHex = "0x" + selectedChain.id.toString(16);
+
+        // ERC20 tokens
+        const res = await fetch(
+          `https://deep-index.moralis.io/api/v2.2/${account.address}/erc20?chain=${chainHex}`,
+          { headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" } }
+        );
+        const data = await res.json();
+        const newBalances = {};
+
+        const tokenList = Array.isArray(data) ? data : (data.result || []);
+        tokenList.forEach(t => {
+          const bal = Number(t.balance) / Math.pow(10, Number(t.decimals));
+          newBalances[t.token_address.toLowerCase()] = bal;
+        });
+
+        // Native token balance
+        const nativeRes = await fetch(
+          `https://deep-index.moralis.io/api/v2.2/${account.address}/balance?chain=${chainHex}`,
+          { headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" } }
+        );
+        const nativeData = await nativeRes.json();
+        if (nativeData.balance) {
+          newBalances["NATIVE"] = Number(nativeData.balance) / Math.pow(10, 18);
+        }
+
+        setBalances(newBalances);
+      } catch (e) {
+        console.error("Balance fetch error:", e);
+      }
+    };
+    fetchBalances();
+  }, [account?.address, selectedChain.id, isSolana]);
+
+  const getBalance = (token) => {
+    if (!token || !account) return null;
+    if (token.address === "NATIVE") return balances["NATIVE"] ?? null;
+    const bal = balances[token.address.toLowerCase()];
+    return bal !== undefined ? bal : null;
+  };
+
   const getPrice = (symbol) => prices[symbol] || FALLBACK_RATES[symbol] || 1;
 
   useEffect(() => {
     if (!isSolana) {
-      const t = tokens;
+      const t = TOKENS_BY_CHAIN[selectedChain.id] || [];
       setFromToken(t[0]); setToToken(t[1]);
       setFromAmount(""); setToAmount("");
     }
   }, [selectedChain]);
 
   useEffect(() => {
-    if (isSolana || !fromAmount || isNaN(fromAmount) || Number(fromAmount) === 0) { setToAmount(""); return; }
+    if (isSolana || !fromAmount || isNaN(Number(fromAmount)) || Number(fromAmount) === 0) { setToAmount(""); return; }
     const t = setTimeout(async () => {
       try {
         setQuoteLoading(true);
@@ -369,6 +414,7 @@ export default function SwapWidget() {
   const filteredToTokens = tokens.filter(t => t.symbol !== fromToken?.symbol && (t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || t.name.toLowerCase().includes(searchQuery.toLowerCase())));
 
   const PriceTag = ({ symbol }) => {
+    if (!symbol) return null;
     const price = getPrice(symbol);
     const change = priceChanges[symbol];
     if (!pricesLoaded) return <span style={{color:"rgba(212,160,23,0.3)",fontSize:11}}>...</span>;
@@ -383,8 +429,6 @@ export default function SwapWidget() {
       </span>
     );
   };
-
-  const accentColor = isSolana ? "#9945FF" : "#D4A017";
 
   return (
     <>
@@ -405,23 +449,23 @@ export default function SwapWidget() {
         .level-badge { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s; white-space: nowrap; border: 1px solid; }
         .page { min-height: 100vh; padding-top: 100px; padding-bottom: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font-family: 'DM Sans', sans-serif; }
         .swap-wrap { width: 100%; max-width: 480px; padding: 0 16px; position: relative; z-index: 10; }
-        .tabs { display: flex; align-items: center; gap: 2px; margin-bottom: 8px; }
-        .tab { padding: 8px 16px; border-radius: 14px; border: none; background: transparent; color: rgba(255,255,255,0.4); font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .tab.active { color: #D4A017; }
         .card { background: rgba(15,10,5,0.85); border: 1px solid rgba(212,160,23,0.15); border-radius: 24px; padding: 8px; backdrop-filter: blur(20px); box-shadow: 0 8px 48px rgba(0,0,0,0.6); }
-        .solana-card { background: rgba(15,10,5,0.85); border: 1px solid rgba(153,69,255,0.2); border-radius: 24px; padding: 20px; backdrop-filter: blur(20px); box-shadow: 0 8px 48px rgba(0,0,0,0.6); }
         .token-box { background: rgba(20,14,6,0.9); border: 1px solid rgba(212,160,23,0.08); border-radius: 20px; padding: 16px 20px; position: relative; transition: all 0.2s; }
         .token-box:hover { border-color: rgba(212,160,23,0.2); }
         .token-box-label { font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 12px; font-weight: 500; }
         .token-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .token-select-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px 8px 8px; border-radius: 50px; border: 1px solid rgba(212,160,23,0.2); background: linear-gradient(135deg, rgba(212,160,23,0.12), rgba(212,160,23,0.06)); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
         .token-select-btn:hover { border-color: rgba(212,160,23,0.4); transform: scale(1.02); }
-        .amount-input { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Cinzel', serif; font-size: 32px; font-weight: 600; text-align: right; outline: none; min-width: 0; }
+        .amount-input { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Cinzel', serif; font-size: 32px; font-weight: 600; text-align: right; outline: none; min-width: 0; width: 100%; }
         .amount-input::placeholder { color: rgba(255,255,255,0.1); }
         .amount-input:read-only { color: rgba(255,255,255,0.4); }
         .amount-input::-webkit-outer-spin-button, .amount-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .amount-input[type=number] { -moz-appearance: textfield; }
-        .usd-value { font-size: 13px; color: rgba(212,160,23,0.5); text-align: right; margin-top: 6px; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+        .balance-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; min-height: 18px; }
+        .balance-usd { font-size: 12px; color: rgba(255,255,255,0.25); }
+        .balance-amount { font-size: 12px; color: rgba(255,255,255,0.35); }
+        .balance-amount span { color: rgba(212,160,23,0.8); font-weight: 600; cursor: pointer; }
+        .balance-amount span:hover { color: #D4A017; }
         .arrow-wrap { display: flex; justify-content: center; padding: 4px 0; margin: -2px 0; }
         .arrow-btn { width: 40px; height: 40px; border-radius: 12px; background: rgba(10,7,2,0.9); border: 2px solid rgba(212,160,23,0.2); color: rgba(212,160,23,0.6); font-size: 16px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
         .arrow-btn:hover { border-color: #D4A017; color: #D4A017; transform: rotate(180deg); }
@@ -438,16 +482,6 @@ export default function SwapWidget() {
         .slip-row { display: flex; gap: 6px; }
         .slip-btn { flex: 1; padding: 7px 0; border-radius: 10px; border: 1px solid rgba(212,160,23,0.1); background: transparent; color: rgba(255,255,255,0.4); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
         .slip-btn.active { border-color: #D4A017; background: rgba(212,160,23,0.12); color: #D4A017; }
-        .dropdown { position: absolute; left: 0; right: 0; top: calc(100% + 6px); background: rgba(12,8,3,0.98); border: 1px solid rgba(212,160,23,0.15); border-radius: 20px; z-index: 200; box-shadow: 0 16px 48px rgba(0,0,0,0.7); overflow: hidden; backdrop-filter: blur(20px); }
-        .search-input { width: 100%; padding: 12px 16px; background: rgba(212,160,23,0.05); border: none; border-bottom: 1px solid rgba(212,160,23,0.1); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; }
-        .search-input::placeholder { color: rgba(255,255,255,0.25); }
-        .dropdown-list { max-height: 260px; overflow-y: auto; }
-        .dropdown-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 18px; background: transparent; border: none; border-bottom: 1px solid rgba(212,160,23,0.05); color: #fff; cursor: pointer; text-align: left; transition: background 0.15s; font-family: 'DM Sans', sans-serif; }
-        .dropdown-item:hover { background: rgba(212,160,23,0.06); }
-        .dropdown-item:last-child { border-bottom: none; }
-        .dropdown-item-symbol { font-weight: 700; font-size: 15px; }
-        .dropdown-item-name { font-size: 11px; color: rgba(255,255,255,0.3); }
-        .dropdown-item-price { font-size: 11px; color: rgba(212,160,23,0.6); margin-top: 2px; }
         .chain-dropdown { position: absolute; top: 54px; right: 0; width: 260px; background: rgba(12,8,3,0.98); border: 1px solid rgba(212,160,23,0.15); border-radius: 20px; z-index: 300; box-shadow: 0 16px 48px rgba(0,0,0,0.7); padding: 8px; backdrop-filter: blur(20px); }
         .chain-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: none; background: transparent; color: #fff; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
         .chain-item:hover { background: rgba(212,160,23,0.06); }
@@ -490,8 +524,8 @@ export default function SwapWidget() {
         </div>
         <div className="nav-links">
           {["🧹 Sweep"].map(tab => (
-            <button key={tab} className={`nav-link ${activeTab === tab ? "active" : ""}`}
-              onClick={() => { if(tab === "🧹 Sweep") { setShowDustSweeper(true); } else { setActiveTab(tab); } }}>
+            <button key={tab} className="nav-link"
+              onClick={() => { if(tab === "🧹 Sweep") setShowDustSweeper(true); }}>
               {tab}
             </button>
           ))}
@@ -566,14 +600,13 @@ export default function SwapWidget() {
                   {selectedChain.id === c.id && <span style={{marginLeft:"auto", color:"#D4A017"}}>✓</span>}
                 </button>
               ))}
-              {/* Solana */}
               <button className={`chain-item ${isSolana ? "active" : ""}`}
                 onClick={() => { setSelectedChain(SOLANA_CHAIN); setShowChainMenu(false); }}
                 style={{borderTop:"1px solid rgba(153,69,255,0.15)", marginTop:4, paddingTop:12}}>
                 <TokenLogo src={L.SOL} size={24} />
                 <div>
                   <div style={{fontWeight:600, fontSize:13}}>Solana</div>
-                  <div style={{fontSize:11, color:"rgba(255,255,255,0.3)"}}>Solana</div>
+                  <div style={{fontSize:11, color:"#9945FF"}}>Solana</div>
                 </div>
                 {isSolana && <span style={{marginLeft:"auto", color:"#9945FF"}}>✓</span>}
               </button>
@@ -581,8 +614,8 @@ export default function SwapWidget() {
           )}
 
           <ConnectButton client={client} wallets={WALLETS} theme="dark"
-            connectButton={{ label:"Connecter", style:{ background:"linear-gradient(135deg, #D4A017, #F5C842)", color:"#0a0600", fontFamily:"'Cinzel', serif", fontWeight:700, fontSize:"13px", borderRadius:"12px", padding:"8px 16px", border:"none", letterSpacing:"0.5px", whiteSpace:"nowrap", height:"36px" } }}
-            connectedButton={{ style:{ background:"rgba(212,160,23,0.08)", color:"#D4A017", fontFamily:"'DM Sans', sans-serif", fontWeight:600, fontSize:"13px", borderRadius:"12px", padding:"8px 12px", border:"1px solid rgba(212,160,23,0.2)", whiteSpace:"nowrap", maxWidth:"140px", overflow:"hidden", textOverflow:"ellipsis" } }}
+            connectButton={{ label:"Connecter", style:{ background:"linear-gradient(135deg, #D4A017, #F5C842)", color:"#0a0600", fontFamily:"'Cinzel', serif", fontWeight:700, fontSize:"13px", borderRadius:"12px", padding:"8px 16px", border:"none", letterSpacing:"0.5px", whiteSpace:"nowrap" } }}
+            connectedButton={{ style:{ background:"rgba(212,160,23,0.08)", color:"#D4A017", fontFamily:"'DM Sans', sans-serif", fontWeight:600, fontSize:"13px", borderRadius:"12px", padding:"8px 12px", border:"1px solid rgba(212,160,23,0.2)", whiteSpace:"nowrap" } }}
           />
         </div>
       </nav>
@@ -599,20 +632,18 @@ export default function SwapWidget() {
         </div>
       )}
 
-      <div className="page" onClick={() => { setShowChainMenu(false); setShowFromList(false); setShowToList(false); setSearchQuery(""); setShowProfile(false); }}>
+      <div className="page" onClick={() => { setShowChainMenu(false); setSearchQuery(""); setShowProfile(false); setShowFromList(false); setShowToList(false); }}>
         <div className="swap-wrap">
-          <div className="tabs">
-            
-          </div>
 
-          {/* SOLANA MODE */}
           {isSolana ? (
             <div className="card" onClick={e => e.stopPropagation()}>
-              
+              <div className="card-header">
+                <span className="card-title" style={{color:"#9945FF"}}>Swap</span>
+                <span style={{fontSize:11, color:"rgba(153,69,255,0.5)"}}>◎ Solana</span>
+              </div>
               <SolanaSwap />
             </div>
           ) : (
-            /* EVM MODE */
             <div className="card" onClick={e => e.stopPropagation()}>
               <div className="card-header">
                 <span className="card-title">Swap</span>
@@ -633,18 +664,23 @@ export default function SwapWidget() {
               <div className="token-box" style={{marginBottom:2}}>
                 <div className="token-box-label">Vendre</div>
                 <div className="token-row">
-                  <button className="token-select-btn" onClick={() => { setShowFromList(!showFromList); setShowToList(false); setSearchQuery(""); }}>
+                  <button className="token-select-btn" onClick={() => { setShowFromList(true); setShowToList(false); setSearchQuery(""); }}>
                     <TokenLogo src={fromToken?.logo} size={24} />
                     {fromToken?.symbol}
                     <span style={{fontSize:12, opacity:0.5}}>▾</span>
                   </button>
                   <input className="amount-input" type="number" placeholder="0" value={fromAmount} onChange={e => setFromAmount(e.target.value)} />
                 </div>
-                <div className="usd-value">
-                  {fromAmount && <span>≈ ${(Number(fromAmount) * getPrice(fromToken?.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
-                  <PriceTag symbol={fromToken?.symbol} />
+                <div className="balance-row">
+                  <span className="balance-usd">
+                    {fromAmount && `≈ $${(Number(fromAmount) * getPrice(fromToken?.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})}`}
+                  </span>
+                  {getBalance(fromToken) !== null && (
+                    <span className="balance-amount">
+                      Solde : <span onClick={() => setFromAmount((getBalance(fromToken) || 0).toFixed(6))}>{(getBalance(fromToken) || 0).toFixed(4)} {fromToken?.symbol}</span>
+                    </span>
+                  )}
                 </div>
-                
               </div>
 
               <div className="arrow-wrap">
@@ -654,18 +690,23 @@ export default function SwapWidget() {
               <div className="token-box" style={{marginTop:2}}>
                 <div className="token-box-label">Acheter</div>
                 <div className="token-row">
-                  <button className="token-select-btn" onClick={() => { setShowToList(!showToList); setShowFromList(false); setSearchQuery(""); }}>
+                  <button className="token-select-btn" onClick={() => { setShowToList(true); setShowFromList(false); setSearchQuery(""); }}>
                     <TokenLogo src={toToken?.logo} size={24} />
                     {toToken?.symbol}
                     <span style={{fontSize:12, opacity:0.5}}>▾</span>
                   </button>
                   <input className="amount-input" type="number" placeholder="0" value={quoteLoading ? "..." : toAmount} readOnly />
                 </div>
-                <div className="usd-value">
-                  {toAmount && <span>≈ ${(Number(toAmount) * getPrice(toToken?.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
-                  <PriceTag symbol={toToken?.symbol} />
+                <div className="balance-row">
+                  <span className="balance-usd">
+                    {toAmount && `≈ $${(Number(toAmount) * getPrice(toToken?.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})}`}
+                  </span>
+                  {getBalance(toToken) !== null && (
+                    <span className="balance-amount">
+                      Solde : <span>{(getBalance(toToken) || 0).toFixed(4)} {toToken?.symbol}</span>
+                    </span>
+                  )}
                 </div>
-                
               </div>
 
               {toAmount && fromAmount && (
@@ -706,10 +747,8 @@ export default function SwapWidget() {
         </div>
       </div>
 
-      {showDustSweeper && <DustSweeper onClose={() => setShowDustSweeper(false)} />}
-
-      {/* TOKEN MODAL */}
-      {(showFromList || showToList) && (
+      {/* TOKEN MODAL EVM */}
+      {(showFromList || showToList) && !isSolana && (
         <div onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(6px)"}}>
           <div onClick={e => e.stopPropagation()} style={{background:"rgba(12,8,3,0.98)", border:"1px solid rgba(212,160,23,0.2)", borderRadius:24, width:"100%", maxWidth:420, maxHeight:"80vh", display:"flex", flexDirection:"column", boxShadow:"0 24px 80px rgba(0,0,0,0.8)"}}>
             <div style={{padding:"20px 20px 16px", borderBottom:"1px solid rgba(212,160,23,0.1)"}}>
@@ -734,7 +773,11 @@ export default function SwapWidget() {
                     <div style={{fontSize:12, color:"rgba(255,255,255,0.35)"}}>{t.name}</div>
                   </div>
                   <div style={{textAlign:"right"}}>
-                    <div style={{fontSize:13, color:"rgba(212,160,23,0.8)", fontWeight:600}}>${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}</div>
+                    {getBalance(t) !== null && (getBalance(t) || 0) > 0 ? (
+                      <div style={{fontSize:13, color:"rgba(212,160,23,0.8)", fontWeight:600}}>{(getBalance(t) || 0).toFixed(4)} {t.symbol}</div>
+                    ) : (
+                      <div style={{fontSize:12, color:"rgba(255,255,255,0.15)"}}>0</div>
+                    )}
                   </div>
                 </button>
               ))}
@@ -742,6 +785,8 @@ export default function SwapWidget() {
           </div>
         </div>
       )}
+
+      {showDustSweeper && <DustSweeper onClose={() => setShowDustSweeper(false)} />}
     </>
   );
 }
