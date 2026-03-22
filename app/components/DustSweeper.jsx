@@ -49,7 +49,7 @@ export default function DustSweeper({ onClose }) {
   const effectiveThreshold = customThreshold ? Number(customThreshold) : threshold;
 
   const scanWallet = async () => {
-    if (!account) { setError("Connecte ton wallet d'abord !"); return; }
+    if (!account) { setError("Connect your wallet first !"); return; }
     setLoading(true);
     setError(null);
     setTokens([]);
@@ -116,7 +116,7 @@ export default function DustSweeper({ onClose }) {
       setScanned(true);
     } catch (e) {
       console.error("Scan error:", e);
-      setError("Erreur : " + (e.message || "inconnue"));
+      setError("Error: " + (e.message || "unknown"));
     }
     setLoading(false);
   };
@@ -131,7 +131,7 @@ export default function DustSweeper({ onClose }) {
   const totalValue = selectedTokensData.reduce((sum, t) => sum + t.valueUsd, 0);
 
   const handleSweep = async () => {
-    if (selectedTokens.length === 0) { setError("Sélectionne au moins un token."); return; }
+    if (selectedTokens.length === 0) { setError("Please select at least one token."); return; }
     if (!account) { setError("Connecte ton wallet d'abord !"); return; }
     setSweeping(true);
     setError(null);
@@ -256,19 +256,19 @@ export default function DustSweeper({ onClose }) {
             {sweptResult ? (
               <div className="success-box">
                 <div style={{fontSize:48}}>🎉</div>
-                <div className="success-title">Sweep réussi !</div>
-                <div style={{fontSize:13,color:"rgba(255,255,255,0.45)"}}>{sweptResult.count} tokens swappés vers {sweptResult.receivedToken}</div>
+                <div className="success-title">Sweep successful!</div>
+                <div style={{fontSize:13,color:"rgba(255,255,255,0.45)"}}>{sweptResult.count} tokens swapped to {sweptResult.receivedToken}</div>
                 <div className="success-amount">{sweptResult.estimatedReceived} {sweptResult.receivedToken}</div>
-                <div style={{fontSize:12,color:"rgba(212,160,23,0.6)",marginBottom:20}}>Valeur récupérée : ${sweptResult.totalValue}</div>
+                <div style={{fontSize:12,color:"rgba(212,160,23,0.6)",marginBottom:20}}>Value recovered: ${sweptResult.totalValue}</div>
                 <button className="scan-btn" onClick={() => { setSweptResult(null); setTokens([]); setScanned(false); }}>
-                  Nouveau Sweep 🧹
+                  New Sweep 🧹
                 </button>
               </div>
             ) : (
               <>
                 {/* Chaîne */}
                 <div className="dust-section">
-                  <div className="dust-label">Chaîne à scanner</div>
+                  <div className="dust-label">Chain to scan</div>
                   <div className="chain-grid">
                     {CHAINS_CONFIG.map(c => (
                       <button key={c.id} className={`chain-pill ${selectedChain.id === c.id ? "active" : ""}`}
@@ -283,7 +283,7 @@ export default function DustSweeper({ onClose }) {
 
                 {/* Seuil */}
                 <div className="dust-section">
-                  <div className="dust-label">Seuil (valeur max en $)</div>
+                  <div className="dust-label">Threshold (max value in $)</div>
                   <div className="threshold-row">
                     {[1, 5, 10, 50].map(v => (
                       <button key={v} className={`threshold-btn ${threshold === v && !customThreshold ? "active" : ""}`}
@@ -291,14 +291,14 @@ export default function DustSweeper({ onClose }) {
                         &lt; ${v}
                       </button>
                     ))}
-                    <input className="threshold-input" type="number" placeholder="$ perso..." value={customThreshold}
+                    <input className="threshold-input" type="number" placeholder="Custom $..." value={customThreshold}
                       onChange={e => setCustomThreshold(e.target.value)} />
                   </div>
                 </div>
 
                 {/* Token cible */}
                 <div className="dust-section">
-                  <div className="dust-label">Convertir vers</div>
+                  <div className="dust-label">Convert to</div>
                   <div className="target-row">
                     {[selectedChain.symbol, "USDC", "USDT"].filter((v,i,a) => a.indexOf(v)===i).map(t => (
                       <button key={t} className={`target-btn ${targetToken === t ? "active" : ""}`} onClick={() => setTargetToken(t)}>{t}</button>
@@ -309,24 +309,24 @@ export default function DustSweeper({ onClose }) {
                 {error && <div className="error-box">{error}</div>}
 
                 <button className="scan-btn" onClick={scanWallet} disabled={loading || !account}>
-                  {loading ? "⟳ Scan en cours..." : account ? `🔍 Scanner sur ${selectedChain.name}` : "Connecte ton wallet d'abord"}
+                  {loading ? "⟳ Scanning..." : account ? `🔍 Scan on ${selectedChain.name}` : "Connecte ton wallet d'abord"}
                 </button>
 
                 {scanned && tokens.length === 0 && (
                   <div className="empty-state">
                     <div style={{fontSize:36,marginBottom:8}}>✨</div>
-                    <div>Aucun dust trouvé sous ${effectiveThreshold} !</div>
-                    <div style={{fontSize:11,marginTop:4}}>Ton wallet est propre sur {selectedChain.name} 🎉</div>
+                    <div>No dust found under ${effectiveThreshold} !</div>
+                    <div style={{fontSize:11,marginTop:4}}>Your wallet is clean on {selectedChain.name} 🎉</div>
                   </div>
                 )}
 
                 {tokens.length > 0 && (
                   <>
                     <div className="tokens-header">
-                      <span className="tokens-count">{tokens.length} token(s) dust trouvé(s)</span>
+                      <span className="tokens-count">{tokens.length} dust token(s) found</span>
                       <div className="select-btns">
-                        <button className="select-btn" onClick={() => setSelectedTokens(tokens.map(t=>t.address))}>Tout</button>
-                        <button className="select-btn" onClick={() => setSelectedTokens([])}>Aucun</button>
+                        <button className="select-btn" onClick={() => setSelectedTokens(tokens.map(t=>t.address))}>All</button>
+                        <button className="select-btn" onClick={() => setSelectedTokens([])}>None</button>
                       </div>
                     </div>
 
@@ -350,13 +350,13 @@ export default function DustSweeper({ onClose }) {
                     {selectedTokens.length > 0 && (
                       <>
                         <div className="summary-box">
-                          <div className="summary-row"><span>Tokens sélectionnés</span><span>{selectedTokens.length}</span></div>
-                          <div className="summary-row"><span>Valeur totale</span><span>${totalValue.toFixed(2)}</span></div>
-                          <div className="summary-row"><span>Frais (3%)</span><span>-${(totalValue*0.03).toFixed(4)}</span></div>
-                          <div className="summary-row"><span>Tu recevras ≈</span><span>{(totalValue*0.97).toFixed(6)} {targetToken}</span></div>
+                          <div className="summary-row"><span>Selected tokens</span><span>{selectedTokens.length}</span></div>
+                          <div className="summary-row"><span>Total value</span><span>${totalValue.toFixed(2)}</span></div>
+                          <div className="summary-row"><span>Fees (3%)</span><span>-${(totalValue*0.03).toFixed(4)}</span></div>
+                          <div className="summary-row"><span>You will receive ≈</span><span>{(totalValue*0.97).toFixed(6)} {targetToken}</span></div>
                         </div>
                         <button className="sweep-btn" onClick={handleSweep} disabled={sweeping}>
-                          {sweeping ? "⟳ Sweep en cours..." : `🧹 Sweeper ${selectedTokens.length} token(s) → ${targetToken}`}
+                          {sweeping ? "⟳ Sweeping..." : `🧹 Sweep ${selectedTokens.length} token(s) → ${targetToken}`}
                         </button>
                       </>
                     )}

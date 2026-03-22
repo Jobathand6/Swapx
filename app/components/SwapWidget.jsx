@@ -409,16 +409,16 @@ export default function SwapWidget() {
       setNeedsApproval(false);
     } catch (e) {
       console.error("Approve error full:", e);
-      setError("Erreur approbation : " + (e.message || "inconnue"));
+      setError("Approval error: " + (e.message || "inconnue"));
     }
     setApproving(false);
   };
 
   const handleSwap = async () => {
-    if (!account) { setError("Connecte ton wallet d'abord !"); return; }
-    if (!fromAmount || Number(fromAmount) === 0) { setError("Entre un montant."); return; }
-    if (!selectedChain?.id) { setError("Chaîne non sélectionnée."); return; }
-    if (!fromToken?.address) { setError("Token non sélectionné."); return; }
+    if (!account) { setError("Please connect your wallet first!"); return; }
+    if (!fromAmount || Number(fromAmount) === 0) { setError("Please enter an amount."); return; }
+    if (!selectedChain?.id) { setError("No network selected."); return; }
+    if (!fromToken?.address) { setError("No token selected."); return; }
     setError(null); setLoading(true);
     try {
       // Approbation automatique pour les tokens ERC20
@@ -471,10 +471,10 @@ export default function SwapWidget() {
           setTimeout(() => setLevelUpNotif(null), 4000);
         }
       } else {
-        setError("Impossible d'obtenir un quote. Réessaie.");
+        setError("Unable to get a quote. Please try again.");
       }
     } catch (e) {
-      setError("Erreur lors du swap : " + (e.message || "inconnue"));
+      setError("Swap error: " + (e.message || "inconnue"));
     }
     setLoading(false); setFromAmount(""); setToAmount("");
   };
@@ -583,8 +583,8 @@ export default function SwapWidget() {
         <div className="level-up-notif" style={{border:`1px solid ${levelUpNotif.color}`}}>
           <span style={{fontSize:32}}>{levelUpNotif.emoji}</span>
           <div>
-            <div style={{fontFamily:"'Cinzel', serif", fontWeight:700, color:levelUpNotif.color, fontSize:15}}>Niveau supérieur !</div>
-            <div style={{color:"#fff", fontSize:13}}>Tu es maintenant <strong>{levelUpNotif.name}</strong> 🎉</div>
+            <div style={{fontFamily:"'Cinzel', serif", fontWeight:700, color:levelUpNotif.color, fontSize:15}}>Level Up!</div>
+            <div style={{color:"#fff", fontSize:13}}>You are now <strong>{levelUpNotif.name}</strong> 🎉</div>
           </div>
         </div>
       )}
@@ -623,7 +623,7 @@ export default function SwapWidget() {
                 <span style={{fontSize:40}}>{currentLevel.emoji}</span>
                 <div>
                   <div style={{fontFamily:"'Cinzel', serif", fontSize:18, fontWeight:700, color:currentLevel.color}}>{currentLevel.name}</div>
-                  <div style={{fontSize:12, color:"rgba(255,255,255,0.4)"}}>{swapCount} swaps effectués</div>
+                  <div style={{fontSize:12, color:"rgba(255,255,255,0.4)"}}>{swapCount} swaps completed</div>
                 </div>
               </div>
               {nextLevel && (
@@ -660,7 +660,7 @@ export default function SwapWidget() {
 
           {showChainMenu && (
             <div className="chain-dropdown">
-              <div style={{fontSize:12, color:"rgba(212,160,23,0.5)", padding:"4px 12px 8px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.8px"}}>Sélectionner la chaîne</div>
+              <div style={{fontSize:12, color:"rgba(212,160,23,0.5)", padding:"4px 12px 8px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.8px"}}>Select network</div>
               {EVM_CHAINS.map(c => (
                 <button key={c.id} className={`chain-item ${selectedChain.id === c.id ? "active" : ""}`}
                   onClick={() => { setSelectedChain(c); setShowChainMenu(false); if(c.chain) switchActiveWalletChain(c.chain); }}>
@@ -686,7 +686,7 @@ export default function SwapWidget() {
           )}
 
           <ConnectButton client={client} wallets={WALLETS} theme="dark"
-            connectButton={{ label:"Connecter", style:{ background:"linear-gradient(135deg, #D4A017, #F5C842)", color:"#0a0600", fontFamily:"'Cinzel', serif", fontWeight:700, fontSize:"13px", borderRadius:"12px", padding:"8px 16px", border:"none", letterSpacing:"0.5px", whiteSpace:"nowrap" } }}
+            connectButton={{ label:"Connect", style:{ background:"linear-gradient(135deg, #D4A017, #F5C842)", color:"#0a0600", fontFamily:"'Cinzel', serif", fontWeight:700, fontSize:"13px", borderRadius:"12px", padding:"8px 16px", border:"none", letterSpacing:"0.5px", whiteSpace:"nowrap" } }}
             connectedButton={{ style:{ background:"rgba(212,160,23,0.08)", color:"#D4A017", fontFamily:"'DM Sans', sans-serif", fontWeight:600, fontSize:"13px", borderRadius:"12px", padding:"8px 12px", border:"1px solid rgba(212,160,23,0.2)", whiteSpace:"nowrap" } }}
           />
         </div>
@@ -724,7 +724,7 @@ export default function SwapWidget() {
 
               {showSettings && (
                 <div className="settings-panel">
-                  <div className="settings-label">Tolérance slippage</div>
+                  <div className="settings-label">Slippage tolerance</div>
                   <div className="slip-row">
                     {[0.1, 0.5, 1.0, 3.0].map(v => (
                       <button key={v} className={`slip-btn ${slippage === v ? "active" : ""}`} onClick={() => setSlippage(v)}>{v}%</button>
@@ -734,7 +734,7 @@ export default function SwapWidget() {
               )}
 
               <div className="token-box" style={{marginBottom:2}}>
-                <div className="token-box-label">Vendre</div>
+                <div className="token-box-label">Sell</div>
                 <div className="token-row">
                   <button className="token-select-btn" onClick={() => { setShowFromList(true); setShowToList(false); setSearchQuery(""); }}>
                     <TokenLogo src={fromToken?.logo} size={24} />
@@ -749,7 +749,7 @@ export default function SwapWidget() {
                   </span>
                   {getBalance(fromToken) !== null && (
                     <span className="balance-amount">
-                      Solde : <span onClick={() => setFromAmount((getBalance(fromToken) || 0).toFixed(6))}>{(getBalance(fromToken) || 0).toFixed(4)} {fromToken?.symbol}</span>
+                      Balance: <span onClick={() => setFromAmount((getBalance(fromToken) || 0).toFixed(6))}>{(getBalance(fromToken) || 0).toFixed(4)} {fromToken?.symbol}</span>
                     </span>
                   )}
                 </div>
@@ -760,7 +760,7 @@ export default function SwapWidget() {
               </div>
 
               <div className="token-box" style={{marginTop:2}}>
-                <div className="token-box-label">Acheter</div>
+                <div className="token-box-label">Buy</div>
                 <div className="token-row">
                   <button className="token-select-btn" onClick={() => { setShowToList(true); setShowFromList(false); setSearchQuery(""); }}>
                     <TokenLogo src={toToken?.logo} size={24} />
@@ -783,23 +783,23 @@ export default function SwapWidget() {
 
               {toAmount && fromAmount && (
                 <div className="quote-box">
-                  <div className="quote-row"><span>Taux</span><span>1 {fromToken?.symbol} = {(getPrice(fromToken?.symbol)/getPrice(toToken?.symbol)).toFixed(6)} {toToken?.symbol}</span></div>
-                  <div className="quote-row"><span>Impact prix</span><span style={{color:"#00c878"}}>{"< 0.01%"}</span></div>
-                  <div className="quote-row"><span>Slippage max</span><span>{slippage}%</span></div>
+                  <div className="quote-row"><span>Rate</span><span>1 {fromToken?.symbol} = {(getPrice(fromToken?.symbol)/getPrice(toToken?.symbol)).toFixed(6)} {toToken?.symbol}</span></div>
+                  <div className="quote-row"><span>Price impact</span><span style={{color:"#00c878"}}>{"< 0.01%"}</span></div>
+                  <div className="quote-row"><span>Max slippage</span><span>{slippage}%</span></div>
                   <div className="quote-row" style={{marginBottom:0}}><span>Route</span><span>{fromToken?.symbol} → {toToken?.symbol}</span></div>
                 </div>
               )}
 
               {error && <div className="error-box">{error}</div>}
-              {txHash && <div className="success-box">✅ Swap réussi ! {txHash}</div>}
+              {txHash && <div className="success-box">✅ Swap successful! {txHash}</div>}
 
               {needsApproval && fromAmount ? (
                 <button className={`swap-btn ${approving ? "loading" : "active"}`} onClick={handleApprove} disabled={approving}>
-                  {approving ? "⟳ Approbation en cours..." : `✅ Approuver ${fromToken?.symbol}`}
+                  {approving ? "⟳ Approving..." : `✅ Approve ${fromToken?.symbol}`}
                 </button>
               ) : (
                 <button className={`swap-btn ${loading ? "loading" : fromAmount ? "active" : "disabled"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
-                  {loading ? "⟳ Swap en cours..." : account ? (fromAmount ? `Swap ${fromToken?.symbol} → ${toToken?.symbol}` : "Entrez un montant") : "Connectez votre wallet"}
+                  {loading ? "⟳ Swapping..." : account ? (fromAmount ? `Swap ${fromToken?.symbol} → ${toToken?.symbol}` : "Enter an amount") : "Connect your wallet"}
                 </button>
               )}
             </div>
@@ -807,7 +807,7 @@ export default function SwapWidget() {
 
           {swapHistory.length > 0 && !isSolana && (
             <div className="history-card">
-              <div className="history-title">Transactions récentes</div>
+              <div className="history-title">Recent transactions</div>
               {swapHistory.map((s, i) => (
                 <div key={i} className="history-item">
                   <div style={{display:"flex", alignItems:"center", gap:10}}>
@@ -831,10 +831,10 @@ export default function SwapWidget() {
           <div onClick={e => e.stopPropagation()} style={{background:"rgba(12,8,3,0.98)", border:"1px solid rgba(212,160,23,0.2)", borderRadius:24, width:"100%", maxWidth:420, maxHeight:"80vh", display:"flex", flexDirection:"column", boxShadow:"0 24px 80px rgba(0,0,0,0.8)"}}>
             <div style={{padding:"20px 20px 16px", borderBottom:"1px solid rgba(212,160,23,0.1)"}}>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16}}>
-                <span style={{fontFamily:"'Cinzel', serif", fontSize:16, fontWeight:700, color:"#D4A017"}}>Sélectionner un token</span>
+                <span style={{fontFamily:"'Cinzel', serif", fontSize:16, fontWeight:700, color:"#D4A017"}}>Select a token</span>
                 <button onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{width:32, height:32, borderRadius:8, border:"none", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.5)", fontSize:16, cursor:"pointer"}}>✕</button>
               </div>
-              <input autoFocus placeholder="🔍 Rechercher un token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              <input autoFocus placeholder="🔍 Search for a token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                 style={{width:"100%", padding:"12px 16px", borderRadius:14, border:"1px solid rgba(212,160,23,0.15)", background:"rgba(212,160,23,0.05)", color:"#fff", fontFamily:"'DM Sans', sans-serif", fontSize:14, outline:"none"}}
               />
             </div>

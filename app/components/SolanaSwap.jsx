@@ -200,9 +200,9 @@ export default function SolanaSwap() {
   }, [fromAmount, fromToken, toToken, slippage]);
 
   const handleSwap = async () => {
-    if (!walletAddress) { setError("Connecte ton wallet Solana !"); return; }
+    if (!walletAddress) { setError("Connecte ton Solana Wallet !"); return; }
     if (!fromAmount || Number(fromAmount) === 0) { setError("Entre un montant."); return; }
-    if (!quoteData) { setError("Attends le quote..."); return; }
+    if (!quoteData) { setError("Waiting for quote..."); return; }
     setError(null); setLoading(true);
     try {
       const swapRes = await fetch("/api/solana", {
@@ -223,7 +223,7 @@ export default function SolanaSwap() {
       await connection.confirmTransaction(txid, "confirmed");
       setTxHash(txid);
       setFromAmount(""); setToAmount("");
-    } catch (e) { setError("Erreur : " + (e.message || "inconnue")); }
+    } catch (e) { setError("Error: " + (e.message || "inconnue")); }
     setLoading(false);
   };
 
@@ -290,7 +290,7 @@ export default function SolanaSwap() {
       {/* Settings */}
       {showSettings && (
         <div style={{background:"rgba(20,14,6,0.9)", borderRadius:16, padding:"14px 16px", marginBottom:10, border:"1px solid rgba(153,69,255,0.1)"}}>
-          <div style={{fontSize:13, color:"rgba(255,255,255,0.35)", marginBottom:10}}>Tolérance slippage</div>
+          <div style={{fontSize:13, color:"rgba(255,255,255,0.35)", marginBottom:10}}>Slippage tolerance</div>
           <div style={{display:"flex", gap:6}}>
             {[0.1, 0.5, 1.0, 3.0].map(v => (
               <button key={v} className={`sol-slip-btn ${slippage === v ? "active" : ""}`} onClick={() => setSlippage(v)}>{v}%</button>
@@ -303,7 +303,7 @@ export default function SolanaSwap() {
 
       {/* FROM */}
       <div className="sol-token-box" style={{marginBottom:2}}>
-        <div style={{fontSize:14, color:"rgba(255,255,255,0.4)", marginBottom:12, fontWeight:500}}>Vendre</div>
+        <div style={{fontSize:14, color:"rgba(255,255,255,0.4)", marginBottom:12, fontWeight:500}}>Sell</div>
         <div style={{display:"flex", alignItems:"center", gap:12}}>
           <button className="sol-token-select" onClick={() => { setShowFromList(!showFromList); setShowToList(false); setSearchQuery(""); }}>
             <TokenLogo src={fromToken.logo} size={24} />
@@ -317,7 +317,7 @@ export default function SolanaSwap() {
             {fromAmount && `≈ $${(Number(fromAmount) * getPrice(fromToken.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})}`}
           </span>
           <span style={{fontSize:12, color:"rgba(255,255,255,0.35)"}}>
-            Solde : <span style={{color:"rgba(153,69,255,0.8)", fontWeight:600, cursor:"pointer"}} onClick={() => getSolBalance(fromToken) !== null && setFromAmount(getSolBalance(fromToken).toFixed(6))}>
+            Balance: <span style={{color:"rgba(153,69,255,0.8)", fontWeight:600, cursor:"pointer"}} onClick={() => getSolBalance(fromToken) !== null && setFromAmount(getSolBalance(fromToken).toFixed(6))}>
               {getSolBalance(fromToken) !== null ? `${getSolBalance(fromToken).toFixed(4)} ${fromToken.symbol}` : `— ${fromToken.symbol}`}
             </span>
           </span>
@@ -332,7 +332,7 @@ export default function SolanaSwap() {
 
       {/* TO */}
       <div className="sol-token-box" style={{marginTop:2}}>
-        <div style={{fontSize:14, color:"rgba(255,255,255,0.4)", marginBottom:12, fontWeight:500}}>Acheter</div>
+        <div style={{fontSize:14, color:"rgba(255,255,255,0.4)", marginBottom:12, fontWeight:500}}>Buy</div>
         <div style={{display:"flex", alignItems:"center", gap:12}}>
           <button className="sol-token-select" onClick={() => { setShowToList(!showToList); setShowFromList(false); setSearchQuery(""); }}>
             <TokenLogo src={toToken.logo} size={24} />
@@ -375,7 +375,7 @@ export default function SolanaSwap() {
       {error && <div style={{margin:"6px 0", padding:"10px 14px", borderRadius:14, background:"rgba(255,80,80,0.08)", border:"1px solid rgba(255,80,80,0.2)", color:"#ff6b6b", fontSize:13}}>{error}</div>}
       {txHash && (
         <div style={{margin:"6px 0", padding:"10px 14px", borderRadius:14, background:"rgba(20,241,149,0.08)", border:"1px solid rgba(20,241,149,0.2)", color:"#14F195", fontSize:13}}>
-          ✅ Swap réussi ! <a href={`https://solscan.io/tx/${txHash}`} target="_blank" rel="noreferrer" style={{color:"#14F195"}}>Voir sur Solscan ↗</a>
+          ✅ Swap successful! <a href={`https://solscan.io/tx/${txHash}`} target="_blank" rel="noreferrer" style={{color:"#14F195"}}>View on Solscan ↗</a>
         </div>
       )}
 
@@ -385,10 +385,10 @@ export default function SolanaSwap() {
           <div onClick={e => e.stopPropagation()} style={{background:"rgba(12,8,3,0.98)", border:"1px solid rgba(153,69,255,0.2)", borderRadius:24, width:"100%", maxWidth:420, maxHeight:"80vh", display:"flex", flexDirection:"column", boxShadow:"0 24px 80px rgba(0,0,0,0.8)"}}>
             <div style={{padding:"20px 20px 16px", borderBottom:"1px solid rgba(153,69,255,0.1)"}}>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16}}>
-                <span style={{fontFamily:"'Cinzel', serif", fontSize:16, fontWeight:700, color:"#9945FF"}}>Sélectionner un token</span>
+                <span style={{fontFamily:"'Cinzel', serif", fontSize:16, fontWeight:700, color:"#9945FF"}}>Select a token</span>
                 <button onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{width:32, height:32, borderRadius:8, border:"none", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.5)", fontSize:16, cursor:"pointer"}}>✕</button>
               </div>
-              <input autoFocus placeholder="🔍 Rechercher un token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              <input autoFocus placeholder="🔍 Search for a token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                 style={{width:"100%", padding:"12px 16px", borderRadius:14, border:"1px solid rgba(153,69,255,0.15)", background:"rgba(153,69,255,0.05)", color:"#fff", fontFamily:"'DM Sans', sans-serif", fontSize:14, outline:"none"}}
               />
             </div>
@@ -419,7 +419,7 @@ export default function SolanaSwap() {
       )}
 
       <button className={`sol-swap-btn ${loading ? "loading" : fromAmount ? "active" : "disabled"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
-        {loading ? "⟳ Swap en cours..." : walletAddress ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Entrez un montant") : "Connect a Solana Wallet"}
+        {loading ? "⟳ Swapping..." : walletAddress ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Enter an amount") : "Connect a Solana Wallet"}
       </button>
     </div>
   );
