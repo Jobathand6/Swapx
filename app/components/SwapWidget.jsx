@@ -545,7 +545,10 @@ export default function SwapWidget() {
         .slip-btn { flex: 1; padding: 7px 0; border-radius: 10px; border: 1px solid rgba(212,160,23,0.1); background: transparent; color: rgba(255,255,255,0.4); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
         .slip-btn.active { border-color: #D4A017; background: rgba(212,160,23,0.12); color: #D4A017; }
         .chain-dropdown { position: absolute; top: 54px; right: 0; width: 260px; background: rgba(12,8,3,0.98); border: 1px solid rgba(212,160,23,0.15); border-radius: 20px; z-index: 300; box-shadow: 0 16px 48px rgba(0,0,0,0.7); padding: 8px; backdrop-filter: blur(20px); }
-        .chain-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: none; background: transparent; color: #fff; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
+        .chain-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: none; background: transparent; color: #fff; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; transition: background 0.15s; text-align: left; }
+.chain-item-info { flex: 1; min-width: 0; }
+.chain-item-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chain-item-symbol { font-size: 11px; color: rgba(255,255,255,0.3); white-space: nowrap; }
         .chain-item:hover { background: rgba(212,160,23,0.06); }
         .chain-item.active { background: rgba(212,160,23,0.1); }
         .history-card { background: rgba(15,10,5,0.85); border: 1px solid rgba(212,160,23,0.12); border-radius: 24px; padding: 20px; margin-top: 12px; backdrop-filter: blur(20px); }
@@ -655,11 +658,11 @@ export default function SwapWidget() {
                 <button key={c.id} className={`chain-item ${selectedChain.id === c.id ? "active" : ""}`}
                   onClick={() => { setSelectedChain(c); setShowChainMenu(false); if(c.chain) switchActiveWalletChain(c.chain); }}>
                   <TokenLogo src={c.logo} size={24} />
-                  <div>
-                    <div style={{fontWeight:600, fontSize:13}}>{c.name}</div>
-                    <div style={{fontSize:11, color:"rgba(255,255,255,0.3)"}}>{c.shortName}</div>
+                  <div className="chain-item-info">
+                    <div className="chain-item-name">{c.name}</div>
+                    <div className="chain-item-symbol">{c.shortName}</div>
                   </div>
-                  {selectedChain.id === c.id && <span style={{marginLeft:"auto", color:"#D4A017"}}>✓</span>}
+                  {selectedChain.id === c.id && <span style={{marginLeft:"auto", color:"#D4A017", flexShrink:0}}>✓</span>}
                 </button>
               ))}
               <button className={`chain-item ${isSolana ? "active" : ""}`}
@@ -668,7 +671,7 @@ export default function SwapWidget() {
                 <TokenLogo src={L.SOL} size={24} />
                 <div>
                   <div style={{fontWeight:600, fontSize:13}}>Solana</div>
-                  <div style={{fontSize:11, color:"#9945FF"}}>Solana</div>
+                  <div className="chain-item-symbol" style={{color:"#9945FF"}}>SOL</div>
                 </div>
                 {isSolana && <span style={{marginLeft:"auto", color:"#9945FF"}}>✓</span>}
               </button>
