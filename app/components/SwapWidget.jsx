@@ -245,7 +245,12 @@ export default function SwapWidget() {
   const [priceChanges, setPriceChanges] = useState({});
   const [pricesLoaded, setPricesLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [swapCount, setSwapCount] = useState(0);
+  const [swapCount, setSwapCount] = useState(() => {
+    if (typeof window !== "undefined") {
+      return parseInt(localStorage.getItem("pangeon_swap_count") || "0");
+    }
+    return 0;
+  });
   const [levelUpNotif, setLevelUpNotif] = useState(null);
   const [showDustSweeper, setShowDustSweeper] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -452,13 +457,15 @@ export default function SwapWidget() {
           gas: quote.transaction.gas ? BigInt(quote.transaction.gas) : undefined,
         });
         const tx = await sendTransaction({ account, transaction: prepared });
-        const hash = tx.transactionHash;
+        console.log("TX result:", tx);
+        const hash = tx.transactionHash || tx.hash || "confirmed";
         setTxHash(hash);
         setSwapHistory(prev => [{ from: fromToken.symbol, to: toToken.symbol, amountIn: fromAmount, amountOut: toAmount, chain: selectedChain.name, hash, time: new Date().toLocaleTimeString() }, ...prev.slice(0, 4)]);
         const newCount = swapCount + 1;
         const oldLevel = getLevel(swapCount);
         const newLvl = getLevel(newCount);
         setSwapCount(newCount);
+        localStorage.setItem("pangeon_swap_count", newCount.toString());
         if (newLvl.name !== oldLevel.name) {
           setLevelUpNotif(newLvl);
           setTimeout(() => setLevelUpNotif(null), 4000);

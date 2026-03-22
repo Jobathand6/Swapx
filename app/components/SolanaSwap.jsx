@@ -72,6 +72,7 @@ export default function SolanaSwap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [prices, setPrices] = useState({});
   const [priceChanges, setPriceChanges] = useState({});
+  const [solBalances, setSolBalances] = useState({});
 
   // Fetch prix Solana tokens
   useEffect(() => {
@@ -93,6 +94,55 @@ export default function SolanaSwap() {
   }, []);
 
   const getPrice = (symbol) => prices[symbol] || 0;
+
+  // Fetch Solana balances
+  useEffect(() => {
+    const fetchSolBalances = async () => {
+      if (!walletAddress) return;
+      try {
+        const newBalances = {};
+        // SOL natif
+        const res = await fetch("https://api.mainnet-beta.solana.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0", id: 1,
+            method: "getBalance",
+            params: [walletAddress],
+          }),
+        });
+        const data = await res.json();
+        if (data.result?.value !== undefined) {
+          newBalances["So11111111111111111111111111111111111111112"] = data.result.value / Math.pow(10, 9);
+        }
+        // SPL tokens
+        const splRes = await fetch("https://api.mainnet-beta.solana.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0", id: 2,
+            method: "getTokenAccountsByOwner",
+            params: [walletAddress, { programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" }, { encoding: "jsonParsed" }],
+          }),
+        });
+        const splData = await splRes.json();
+        if (splData.result?.value) {
+          splData.result.value.forEach(account => {
+            const info = account.account.data.parsed.info;
+            newBalances[info.mint] = Number(info.tokenAmount.uiAmount) || 0;
+          });
+        }
+        setSolBalances(newBalances);
+      } catch (e) { console.error("Sol balance error:", e); }
+    };
+    fetchSolBalances();
+  }, [walletAddress]);
+
+  const getSolBalance = (token) => {
+    if (!walletAddress || !token) return null;
+    const bal = solBalances[token.mint];
+    return bal !== undefined ? bal : null;
+  };
 
   useEffect(() => {
     const checkWallet = () => {
@@ -262,9 +312,15 @@ export default function SolanaSwap() {
           </button>
           <input type="number" placeholder="0" value={fromAmount} onChange={e => setFromAmount(e.target.value)} className="sol-amount-input" />
         </div>
-        <div style={{fontSize:13, color:"rgba(153,69,255,0.5)", textAlign:"right", marginTop:6, display:"flex", alignItems:"center", justifyContent:"flex-end", gap:6}}>
-          {fromAmount && <span>≈ ${(Number(fromAmount) * getPrice(fromToken.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
-          <PriceTag symbol={fromToken.symbol} />
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6}}>
+          <span style={{fontSize:12, color:"rgba(255,255,255,0.25)"}}>
+            {fromAmount && `≈ $${(Number(fromAmount) * getPrice(fromToken.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})}`}
+          </span>
+          <span style={{fontSize:12, color:"rgba(255,255,255,0.35)"}}>
+            Solde : <span style={{color:"rgba(153,69,255,0.8)", fontWeight:600, cursor:"pointer"}} onClick={() => getSolBalance(fromToken) !== null && setFromAmount(getSolBalance(fromToken).toFixed(6))}>
+              {getSolBalance(fromToken) !== null ? `${getSolBalance(fromToken).toFixed(4)} ${fromToken.symbol}` : `— ${fromToken.symbol}`}
+            </span>
+          </span>
         </div>
         
       </div>
@@ -285,9 +341,15 @@ export default function SolanaSwap() {
           </button>
           <input type="number" placeholder="0" value={quoteLoading ? "..." : toAmount} readOnly className="sol-amount-input" />
         </div>
-        <div style={{fontSize:13, color:"rgba(153,69,255,0.5)", textAlign:"right", marginTop:6, display:"flex", alignItems:"center", justifyContent:"flex-end", gap:6}}>
-          {toAmount && <span>≈ ${(Number(toAmount) * getPrice(toToken.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})} USD</span>}
-          <PriceTag symbol={toToken.symbol} />
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6}}>
+          <span style={{fontSize:12, color:"rgba(255,255,255,0.25)"}}>
+            {toAmount && `≈ $${(Number(toAmount) * getPrice(toToken.symbol)).toLocaleString(undefined, {maximumFractionDigits:2})}`}
+          </span>
+          <span style={{fontSize:12, color:"rgba(255,255,255,0.35)"}}>
+            Solde : <span style={{color:"rgba(153,69,255,0.8)", fontWeight:600}}>
+              {getSolBalance(toToken) !== null ? `${getSolBalance(toToken).toFixed(4)} ${toToken.symbol}` : `— ${toToken.symbol}`}
+            </span>
+          </span>
         </div>
         
       </div>
@@ -343,9 +405,11 @@ export default function SolanaSwap() {
                     <div style={{fontSize:12, color:"rgba(255,255,255,0.35)"}}>{t.name}</div>
                   </div>
                   <div style={{textAlign:"right"}}>
-                    <div style={{fontSize:13, color:"rgba(153,69,255,0.8)", fontWeight:600}}>
-                      {prices[t.symbol] ? `$${getPrice(t.symbol).toLocaleString(undefined, {maximumFractionDigits: getPrice(t.symbol) < 0.01 ? 8 : getPrice(t.symbol) < 1 ? 4 : 2})}` : ""}
-                    </div>
+                    {getSolBalance(t) !== null && getSolBalance(t) > 0 ? (
+                      <div style={{fontSize:13, color:"rgba(153,69,255,0.8)", fontWeight:600}}>{getSolBalance(t).toFixed(4)} {t.symbol}</div>
+                    ) : (
+                      <div style={{fontSize:12, color:"rgba(255,255,255,0.15)"}}>0</div>
+                    )}
                   </div>
                 </button>
               ))}
