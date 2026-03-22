@@ -245,12 +245,12 @@ export default function SwapWidget() {
   const [priceChanges, setPriceChanges] = useState({});
   const [pricesLoaded, setPricesLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [swapCount, setSwapCount] = useState(() => {
-    if (typeof window !== "undefined") {
-      return parseInt(localStorage.getItem("pangeon_swap_count") || "0");
-    }
-    return 0;
-  });
+  const [swapCount, setSwapCount] = useState(0);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("pangeon_swap_count");
+    if (saved) setSwapCount(parseInt(saved));
+  }, []);
   const [levelUpNotif, setLevelUpNotif] = useState(null);
   const [showDustSweeper, setShowDustSweeper] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
