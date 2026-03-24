@@ -26,7 +26,7 @@ export async function GET(request) {
     const network2 = searchParams.get("network") || "polygon";
 
     const res = await fetch(
-      `https://apiv5.paraswap.io/transactions/${network2}?ignoreChecks=true`,
+      `https://apiv5.paraswap.io/transactions/${network2}?ignoreChecks=true&ignoreGasEstimate=true&maxImpact=100`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },

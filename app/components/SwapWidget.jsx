@@ -360,6 +360,7 @@ export default function SwapWidget() {
           fromToken: fromToken?.address || "NATIVE",
           toToken: toToken?.address || "NATIVE",
           amount: amountWei,
+          decimals: fromToken?.decimals || 18,
         });
         if (quote?.buyAmount) {
           const toDecimals = toToken?.decimals || 18;
@@ -399,7 +400,16 @@ export default function SwapWidget() {
         chain: selectedChain.chain,
         address: fromToken.address,
       });
-      const spenderAddress = "0x216B4B4Ba9F3e719726886d34a177484278Bfcae";
+      const OPENOCEAN_SPENDERS = {
+  1: "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+  137: "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+  56: "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+  42161: "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+  43114: "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+  8453: "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+  10: "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+};
+const spenderAddress = OPENOCEAN_SPENDERS[selectedChain.id] || "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64";
       const tx = prepareContractCall({
         contract,
         method: "function approve(address spender, uint256 amount) returns (bool)",
@@ -421,21 +431,7 @@ export default function SwapWidget() {
     if (!fromToken?.address) { setError("No token selected."); return; }
     setError(null); setLoading(true);
     try {
-      // Approbation automatique pour les tokens ERC20
-      if (fromToken?.address !== "NATIVE" && account) {
-        try {
-          const { sendTransaction, prepareContractCall, getContract } = await import("thirdweb");
-          const contract = getContract({ client, chain: selectedChain.chain, address: fromToken.address });
-          const approveTx = prepareContractCall({
-            contract,
-            method: "function approve(address spender, uint256 amount) returns (bool)",
-            params: ["0x216B4B4Ba9F3e719726886d34a177484278Bfcae", BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935")],
-          });
-          await sendTransaction({ account, transaction: approveTx });
-        } catch (approveErr) {
-          console.log("Approve skipped or failed:", approveErr.message);
-        }
-      }
+      
       const decimals = fromToken?.decimals || 18;
       const amountWei = BigInt(Math.floor(Number(fromAmount) * Math.pow(10, decimals))).toString();
       const quote = await getSwapQuote({
@@ -443,20 +439,33 @@ export default function SwapWidget() {
         fromToken: fromToken?.address,
         toToken: toToken?.address,
         amount: amountWei,
+        decimals: fromToken?.decimals || 18,
         walletAddress: account.address,
         slippage,
       });
       if (quote?.transaction) {
-        const { sendTransaction, prepareTransaction } = await import("thirdweb");
-        const prepared = prepareTransaction({
+        // Approbation avec la bonne adresse du contrat
+        if (fromToken?.address !== "NATIVE") {
+          try {
+            const { approveToken } = await import("../lib/sendSwapTx");
+            await approveToken({
+              chainId: Number(selectedChain.id),
+              tokenAddress: fromToken.address,
+              spenderAddress: quote.transaction.to,
+            });
+            await new Promise(r => setTimeout(r, 3000));
+          } catch (approveErr) {
+            console.log("Approve skipped:", approveErr.message);
+          }
+        }
+        const { sendSwapTransaction } = await import("../lib/sendSwapTx");
+        const tx = await sendSwapTransaction({
+          chainId: Number(selectedChain.id),
           to: quote.transaction.to,
           data: quote.transaction.data,
-          value: quote.transaction.value ? BigInt(quote.transaction.value) : 0n,
-          chain: selectedChain.chain,
-          client,
-          gas: quote.transaction.gas ? BigInt(quote.transaction.gas) : undefined,
+          value: quote.transaction.value || "0",
+          gas: quote.transaction.gas,
         });
-        const tx = await sendTransaction({ account, transaction: prepared });
         console.log("TX result:", tx);
         const hash = tx.transactionHash || tx.hash || "confirmed";
         setTxHash(hash);

@@ -1,93 +1,80 @@
-const CHAIN_NETWORK_MAP = {
-  1: "1",
-  137: "137",
-  56: "56",
-  42161: "42161",
-  43114: "43114",
-  8453: "8453",
-  10: "10",
+const CHAIN_MAP_PARASWAP = {
+  1: "1", 137: "137", 56: "56", 42161: "42161",
+  43114: "43114", 8453: "8453", 10: "10",
 };
 
-const NATIVE_TOKEN = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+const CHAIN_MAP_OPENOCEAN = {
+  1: "eth", 137: "polygon", 56: "bsc", 42161: "arbitrum",
+  43114: "avax", 8453: "base", 10: "optimism",
+};
 
-export async function getSwapPrice({ chainId, fromToken, toToken, amount }) {
+const NATIVE_TOKEN_PARASWAP = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+const NATIVE_TOKEN_OPENOCEAN = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
+export async function getSwapPrice({ chainId, fromToken, toToken, amount, decimals = 18 }) {
+  console.log("getSwapPrice called - amount:", amount, "decimals:", decimals);
   try {
-    const network = CHAIN_NETWORK_MAP[chainId] || "1";
-    const srcToken = fromToken === "NATIVE" ? NATIVE_TOKEN : fromToken;
-    const destToken = toToken === "NATIVE" ? NATIVE_TOKEN : toToken;
+    const srcToken = fromToken === "NATIVE" ? NATIVE_TOKEN_OPENOCEAN : fromToken;
+    const destToken = toToken === "NATIVE" ? NATIVE_TOKEN_OPENOCEAN : toToken;
+
+    const amountReadable = (Number(amount) / Math.pow(10, decimals)).toString();
 
     const params = new URLSearchParams({
       type: "price",
-      network,
-      srcToken,
-      destToken,
-      amount,
+      chainId: chainId.toString(),
+      inTokenAddress: srcToken,
+      outTokenAddress: destToken,
+      amount: amountReadable,
     });
 
-    const res = await fetch(`/api/paraswap?${params}`);
+    const res = await fetch(`/api/openocean?${params}`);
     const data = await res.json();
 
-    if (data?.priceRoute?.destAmount) {
-      return { buyAmount: data.priceRoute.destAmount, priceRoute: data.priceRoute };
+    if (data?.data?.outAmount) {
+      return { buyAmount: data.data.outAmount };
     }
     return null;
   } catch (e) {
-    console.error("Paraswap price error:", e);
+    console.error("OpenOcean price error:", e);
     return null;
   }
 }
 
-export async function getSwapQuote({ chainId, fromToken, toToken, amount, walletAddress, slippage = 0.5 }) {
+export async function getSwapQuote({ chainId, fromToken, toToken, amount, decimals = 18, walletAddress, slippage = 0.5 }) {
   try {
-    const network = CHAIN_NETWORK_MAP[chainId] || "1";
-    const srcToken = fromToken === "NATIVE" ? NATIVE_TOKEN : fromToken;
-    const destToken = toToken === "NATIVE" ? NATIVE_TOKEN : toToken;
+    const srcToken = fromToken === "NATIVE" ? NATIVE_TOKEN_OPENOCEAN : fromToken;
+    const destToken = toToken === "NATIVE" ? NATIVE_TOKEN_OPENOCEAN : toToken;
 
-    // Étape 1 : obtenir le priceRoute
-    const priceParams = new URLSearchParams({
-      type: "price",
-      network,
-      srcToken,
-      destToken,
-      amount,
+    const amountReadable = (Number(amount) / Math.pow(10, decimals)).toString();
+
+    const params = new URLSearchParams({
+      type: "quote",
+      chainId: chainId.toString(),
+      inTokenAddress: srcToken,
+      outTokenAddress: destToken,
+      amount: amountReadable,
+      slippage: slippage.toString(),
+      account: walletAddress,
     });
 
-    const priceRes = await fetch(`/api/paraswap?${priceParams}`);
-    const priceData = await priceRes.json();
+    const res = await fetch(`/api/openocean?${params}`);
+    const data = await res.json();
 
-    if (!priceData?.priceRoute) throw new Error("Pas de priceRoute");
-
-    // Étape 2 : obtenir la transaction
-    const txParams = new URLSearchParams({
-      network,
-      userAddress: walletAddress,
-    });
-
-    const txRes = await fetch(`/api/paraswap?${txParams}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        srcToken,
-        destToken,
-        srcAmount: amount,
-        priceRoute: priceData.priceRoute,
-        userAddress: walletAddress,
-        slippage: Math.floor(slippage * 100),
-      }),
-    });
-
-    const txData = await txRes.json();
-
-    if (txData?.transaction) {
-      return { transaction: txData.transaction };
-    }
-    if (txData?.to) {
-      return { transaction: txData };
+    console.log("OpenOcean response:", JSON.stringify(data?.data));
+    if (data?.data?.to) {
+      return {
+        transaction: {
+          to: data.data.to,
+          data: data.data.data,
+          value: "0",
+          gas: data.data.estimatedGas,
+        }
+      };
     }
 
-    throw new Error(txData?.error || "Transaction invalide");
+    throw new Error(data?.error || "No transaction data");
   } catch (e) {
-    console.error("Paraswap quote error:", e);
+    console.error("OpenOcean quote error:", e);
     throw e;
   }
 }
