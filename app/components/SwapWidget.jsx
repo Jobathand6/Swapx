@@ -72,6 +72,7 @@ const COINGECKO_IDS = {
   UNI:"uniswap",CAKE:"pancakeswap-token",LINK:"chainlink",AAVE:"aave",SHIB:"shiba-inu",PEPE:"pepe",
   LDO:"lido-dao",MKR:"maker",CRV:"curve-dao-token",GRT:"the-graph",SAND:"the-sandbox",MANA:"decentraland",
   APE:"apecoin",LRC:"loopring",IMX:"immutable-x",
+  AERO:"aerodrome-finance",ZRO:"layerzero",GMX:"gmx",PENDLE:"pendle",SPX:"spx6900",
 };
 
 const FALLBACK = {
@@ -112,6 +113,7 @@ const TOKENS_BY_CHAIN = {
     {symbol:"APE", name:"ApeCoin",    address:"0x4d224452801ACEd8B2F0aebE155379bb5D594381",logo:L.APE, decimals:18},
     {symbol:"LRC", name:"Loopring",   address:"0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD",logo:L.LRC, decimals:18},
     {symbol:"IMX", name:"Immutable X",address:"0xF57e7e7C23978C3cAEC3C3548E3D615c346e79fF",logo:L.IMX, decimals:18},
+    {symbol:"SPX", name:"SPX6900",    address:"0xE0f63A424a4439cBE457D80E4f4b51aD25b2c56C",logo:"https://dd.dexscreener.com/ds-data/tokens/ethereum/0xe0f63a424a4439cbe457d80e4f4b51ad25b2c56c.png",decimals:8},
   ],
   137:[
     {symbol:"MATIC",name:"Polygon",    address:"NATIVE",logo:L.MATIC,decimals:18},
@@ -123,20 +125,30 @@ const TOKENS_BY_CHAIN = {
     {symbol:"AAVE", name:"Aave",       address:"0xD6DF932A45C0f255f85145f286eA0b292B21C90B",logo:L.AAVE,decimals:18},
   ],
   56:[
-    {symbol:"BNB", name:"BNB",        address:"NATIVE",logo:L.BNB, decimals:18},
-    {symbol:"BUSD",name:"BUSD",       address:"0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",logo:L.BUSD,decimals:18},
-    {symbol:"USDT",name:"Tether",     address:"0x55d398326f99059fF775485246999027B3197955",logo:L.USDT,decimals:18},
-    {symbol:"CAKE",name:"PancakeSwap",address:"0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",logo:L.CAKE,decimals:18},
-    {symbol:"ETH", name:"Ethereum",   address:"0x2170Ed0880ac9A755fd29B2688956BD959F933F8",logo:L.ETH, decimals:18},
-    {symbol:"LINK",name:"Chainlink",  address:"0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD",logo:L.LINK,decimals:18},
+    {symbol:"BNB",      name:"BNB",              address:"NATIVE",logo:L.BNB, decimals:18},
+    {symbol:"BUSD",     name:"BUSD",             address:"0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",logo:L.BUSD,decimals:18},
+    {symbol:"USDT",     name:"Tether",           address:"0x55d398326f99059fF775485246999027B3197955",logo:L.USDT,decimals:18},
+    {symbol:"CAKE",     name:"PancakeSwap",      address:"0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82",logo:L.CAKE,decimals:18},
+    {symbol:"ETH",      name:"Ethereum",         address:"0x2170Ed0880ac9A755fd29B2688956BD959F933F8",logo:L.ETH, decimals:18},
+    {symbol:"LINK",     name:"Chainlink",        address:"0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD",logo:L.LINK,decimals:18},
+    {symbol:"XKC",      name:"Wiki Cat",         address:"0x5Ac6B83b6a50F2A7D0A9B8441aEd61bBEb49b43F",logo:"https://dd.dexscreener.com/ds-data/tokens/bsc/0x5ac6b83b6a50f2a7d0a9b8441aed61bbeb49b43f.png",decimals:18},
+    {symbol:"BANANAS31",name:"Banana For Scale", address:"0x45f239b77cAD0F1B50e56F9C38BC80b36a2D6e0A",logo:"https://assets.coingecko.com/coins/images/37234/small/bananas.jpg",decimals:18},
+    {symbol:"CREPE",    name:"Crepe",            address:"0x8dbF70Bd1E5C0E1d4f07eB8e1F3B1b55e3b1dC5C",logo:"https://assets.coingecko.com/coins/images/38100/small/crepe.jpg",decimals:18},
+    {symbol:"ARK",      name:"ARK DeFAI",        address:"0x111AbD3aC56b6B8e2dA7ff03a7168B80c3B02571",logo:"https://assets.coingecko.com/coins/images/37800/small/ark.jpg",decimals:18},
+    {symbol:"BTW",      name:"Bitway",           address:"0x6F4d14C68793f5Aa10503EBe8bA6A3C0D7f26Cf7",logo:"https://assets.coingecko.com/coins/images/37900/small/btw.jpg",decimals:18},
+    {symbol:"TRIA",     name:"Tria",             address:"0x9f22B518de0Ce56D31c7C0a4dA1B1Bc9Dc6e1B9B",logo:"https://assets.coingecko.com/coins/images/38000/small/tria.jpg",decimals:18},
   ],
   42161:[
-    {symbol:"ETH", name:"Ethereum",   address:"NATIVE",logo:L.ETH, decimals:18},
-    {symbol:"ARB", name:"Arbitrum",   address:"0x912CE59144191C1204E64559FE8253a0e49E6548",logo:L.ARB, decimals:18},
-    {symbol:"USDC",name:"USD Coin",   address:"0xaf88d065e77c8cC2239327C5EDb3A432268e5831",logo:L.USDC,decimals:6},
-    {symbol:"USDT",name:"Tether",     address:"0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",logo:L.USDT,decimals:6},
-    {symbol:"LINK",name:"Chainlink",  address:"0xf97f4df75117a78c1A5a0DBb814Af92458539FB4",logo:L.LINK,decimals:18},
-    {symbol:"AAVE",name:"Aave",       address:"0xba5DdD1f9d7F570dc94a51479a000E3BCE967196",logo:L.AAVE,decimals:18},
+    {symbol:"ETH",   name:"Ethereum",       address:"NATIVE",logo:L.ETH, decimals:18},
+    {symbol:"ARB",   name:"Arbitrum",       address:"0x912CE59144191C1204E64559FE8253a0e49E6548",logo:L.ARB, decimals:18},
+    {symbol:"USDC",  name:"USD Coin",       address:"0xaf88d065e77c8cC2239327C5EDb3A432268e5831",logo:L.USDC,decimals:6},
+    {symbol:"USDT",  name:"Tether",         address:"0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",logo:L.USDT,decimals:6},
+    {symbol:"LINK",  name:"Chainlink",      address:"0xf97f4df75117a78c1A5a0DBb814Af92458539FB4",logo:L.LINK,decimals:18},
+    {symbol:"AAVE",  name:"Aave",           address:"0xba5DdD1f9d7F570dc94a51479a000E3BCE967196",logo:L.AAVE,decimals:18},
+    {symbol:"GMX",   name:"GMX",            address:"0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a",logo:"https://assets.coingecko.com/coins/images/18323/small/arbit.png",decimals:18},
+    {symbol:"PENDLE",name:"Pendle",         address:"0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8",logo:"https://dd.dexscreener.com/ds-data/tokens/arbitrum/0x0c880f6761f1af8d9aa9c466984b80dab9a8c9e8.png",decimals:18},
+    {symbol:"CRV",   name:"Curve DAO",      address:"0x11cDb42B0EB46D95f990BeDD4695A6e3fA034978",logo:L.CRV,decimals:18},
+    {symbol:"ZRO",   name:"LayerZero",      address:"0x6985884C4392D348587B19cb9eAAf157F13271cd",logo:"https://assets.coingecko.com/coins/images/28206/small/ftxG9_TJ_400x400.jpeg",decimals:6},
   ],
   43114:[
     {symbol:"AVAX",name:"Avalanche",  address:"NATIVE",logo:L.AVAX,decimals:18},
@@ -145,9 +157,15 @@ const TOKENS_BY_CHAIN = {
     {symbol:"WETH",name:"Wrapped ETH",address:"0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB",logo:L.WETH,decimals:18},
   ],
   8453:[
-    {symbol:"ETH", name:"Ethereum",   address:"NATIVE",logo:L.ETH, decimals:18},
-    {symbol:"USDC",name:"USD Coin",   address:"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",logo:L.USDC,decimals:6},
-    {symbol:"DAI", name:"Dai",        address:"0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",logo:L.DAI, decimals:18},
+    {symbol:"ETH",  name:"Ethereum",          address:"NATIVE",logo:L.ETH, decimals:18},
+    {symbol:"USDC", name:"USD Coin",           address:"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",logo:L.USDC,decimals:6},
+    {symbol:"DAI",  name:"Dai",               address:"0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",logo:L.DAI, decimals:18},
+    {symbol:"AERO", name:"Aerodrome Finance",  address:"0x940181a94a35a4569e4529a3cdfb74e38fd98631",logo:"https://dd.dexscreener.com/ds-data/tokens/base/0x940181a94a35a4569e4529a3cdfb74e38fd98631.png",decimals:18},
+    {symbol:"ZRO",  name:"LayerZero",          address:"0x6985884C4392D348587B19cb9eAAf157F13271cd",logo:"https://dd.dexscreener.com/ds-data/tokens/base/0x6985884c4392d348587b19cb9eaaf157f13271cd.png",decimals:6},
+    {symbol:"VVV",  name:"Venice Token",       address:"0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf",logo:"https://assets.coingecko.com/coins/images/36730/small/venice_logo.png",decimals:18},
+    {symbol:"ZORA", name:"Zora",               address:"0x1111111111166b7FE7bd91427724B487980aFc69",logo:"https://assets.coingecko.com/coins/images/38116/small/zora.jpg",decimals:18},
+    {symbol:"BNKR", name:"BankrCoin",          address:"0x22aF33FE49fD1Fa80c7149773dDe5890D3c76F3b",logo:"https://assets.coingecko.com/coins/images/38200/small/bankr.jpg",decimals:18},
+    {symbol:"MOLT", name:"Moltbook",           address:"0x833F19E3e5fA2e26Ce58EB6B03D939eC34E8eFf6",logo:"https://assets.coingecko.com/coins/images/38300/small/molt.jpg",decimals:18},
   ],
   10:[
     {symbol:"ETH", name:"Ethereum",   address:"NATIVE",logo:L.ETH, decimals:18},
@@ -672,7 +690,7 @@ export default function SwapWidget() {
               )}
 
               {error&&<div className="error-box">{error}</div>}
-              {txHash&&<div className="success-box">✅ Swap successful! {txHash}</div>}
+              {txHash&&<div className="success-box">✅ Swap successful! <span style={{fontSize:11, opacity:0.7, wordBreak:"break-all"}}>{txHash}</span></div>}
 
               <button className={`swap-btn ${loading?"loading":fromAmount?"active":"disabled"}`} onClick={handleSwap} disabled={loading||!fromAmount}>
                 {loading?"⟳ Swapping...":account?(fromAmount?`Swap ${fromToken?.symbol} → ${toToken?.symbol}`:"Enter an amount"):"Connect your wallet"}

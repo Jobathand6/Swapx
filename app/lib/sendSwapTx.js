@@ -163,13 +163,16 @@ export async function approveToken({ chainId, tokenAddress, spenderAddress }) {
 
   // Encode approve(spender, maxUint256)
   const maxUint256 = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+  const { getAddress } = await import("viem");
+  const checksumToken = getAddress(tokenAddress);
+  
   const approveData = "0x095ea7b3" +
     spenderAddress.slice(2).padStart(64, "0") +
     maxUint256.slice(2);
 
   const txHash = await walletClient.sendTransaction({
     account: address,
-    to: tokenAddress,
+    to: checksumToken,
     data: approveData,
     value: BigInt(0),
   });
