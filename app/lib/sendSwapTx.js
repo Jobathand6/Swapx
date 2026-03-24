@@ -78,7 +78,7 @@ export async function sendSwapTransaction({ chainId, to, data, value = "0", gas 
         account: address,
         to: to,
         data: data,
-        value: BigInt(value || "0"),
+        value: BigInt(value && value !== "0x0" ? value : "0"),
       });
       gasLimit = (gasLimit * 120n) / 100n; // +20% de marge
     } catch (e) {
@@ -90,7 +90,7 @@ export async function sendSwapTransaction({ chainId, to, data, value = "0", gas 
     account: address,
     to: to,
     data: data,
-    value: BigInt(value || "0"),
+    value: BigInt(value && value !== "0x0" ? value : "0"),
     ...(gasLimit && { gas: gasLimit }),
   });
 
