@@ -486,7 +486,8 @@ export default function SwapWidget() {
           <span className="nav-logo-text">PANGEON</span>
         </div>
         <div className="nav-links">
-          <a href="/dust" className="nav-link">🧹 Sweep</a>
+          <a href="/swap" className="nav-link" style={{textDecoration:"none"}}>⚡ Swap</a>
+        <a href="/dust" className="nav-link" style={{textDecoration:"none"}}>🧹 Sweep</a>
         </div>
         <div className="nav-right">
           <button className="level-badge" style={{borderColor:`${currentLevel.color}40`,background:currentLevel.bg,color:currentLevel.color}} onClick={()=>setShowProfile(!showProfile)}>

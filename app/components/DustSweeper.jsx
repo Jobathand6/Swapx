@@ -1,7 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useActiveAccount } from "thirdweb/react";
+import { useActiveAccount, ConnectButton } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
+import { createWallet } from "thirdweb/wallets";
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "demo",
+});
+
+const WALLETS = [
+  createWallet("io.metamask"),
+  createWallet("com.coinbase.wallet"),
+  createWallet("me.rainbow"),
+  createWallet("com.trustwallet.app"),
+  createWallet("walletConnect"),
+];
 
 const CHAINS_CONFIG = [
   { id: "0x1",    name: "Ethereum",  symbol: "ETH",  color: "#627EEA", moralisId: "0x1",    logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
@@ -29,6 +43,33 @@ const RECEIVE_TOKENS = {
 };
 
 const STARS = Array.from({length:40},(_,i)=>({id:i,top:`${(i*37+11)%60}%`,left:`${(i*53+7)%100}%`,size:i%4===0?2:1,opacity:((i*17+3)%6)*0.08+0.1}));
+
+const LEVELS = [
+  { name: "Fossil",  emoji: "🪨", min: 0,     max: 49,   color: "#8B7355", bg: "rgba(139,115,85,0.15)" },
+  { name: "Egg",     emoji: "🥚", min: 50,    max: 499,  color: "#C8B89A", bg: "rgba(200,184,154,0.15)" },
+  { name: "Reptile", emoji: "🦎", min: 500,   max: 1999, color: "#4CAF50", bg: "rgba(76,175,80,0.15)" },
+  { name: "Raptor",  emoji: "🦴", min: 2000,  max: 4999, color: "#2196F3", bg: "rgba(33,150,243,0.15)" },
+  { name: "Rex",     emoji: "🦖", min: 5000,  max: 9999, color: "#FF5722", bg: "rgba(255,87,34,0.15)" },
+  { name: "Pangean", emoji: "🌋", min: 10000, max: Infinity, color: "#D4A017", bg: "rgba(212,160,23,0.15)" },
+];
+
+function getLevel(n) { return LEVELS.find(l => n >= l.min && n <= l.max) || LEVELS[0]; }
+
+function RankBadge() {
+  const [swapCount, setSwapCount] = useState(0);
+  useEffect(() => {
+    const saved = localStorage.getItem("pangeon_swap_count");
+    if (saved) setSwapCount(parseInt(saved));
+  }, []);
+  const level = getLevel(swapCount);
+  return (
+    <a href="/swap" style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:12,border:`1px solid ${level.color}40`,background:level.bg,color:level.color,textDecoration:"none",whiteSpace:"nowrap"}}>
+      <span style={{fontSize:16}}>{level.emoji}</span>
+      <span style={{fontFamily:"'Cinzel',serif",fontSize:12,fontWeight:700}}>{level.name}</span>
+      <span style={{fontSize:10,opacity:0.6}}>#{swapCount}</span>
+    </a>
+  );
+}
 
 function TokenImg({ src, size = 28 }) {
   const [s, setS] = useState(src);
@@ -314,6 +355,23 @@ export default function DustSweeper({ onClose, fullPage = false }) {
           <div style={{position:"absolute",bottom:0,right:"6%",width:0,height:0,borderLeft:"170px solid transparent",borderRight:"170px solid transparent",borderBottom:"350px solid #120800"}}/>
           <div style={{position:"absolute",bottom:0,left:0,right:0,height:120,background:"linear-gradient(180deg,transparent,rgba(30,15,0,0.6))"}}/>
         </div>
+        {/* Navbar */}
+        <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:"rgba(6,4,8,0.8)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(200,150,50,0.1)",height:64,display:"grid",gridTemplateColumns:"1fr auto 1fr",alignItems:"center",padding:"0 24px",gap:16}}>
+          <a href="/" style={{display:"flex",alignItems:"center",gap:10,textDecoration:"none"}}>
+            <img src="/logo.png" style={{width:44,height:44,objectFit:"contain"}}/>
+            <span style={{fontFamily:"'Cinzel',serif",fontSize:22,fontWeight:700,background:"linear-gradient(135deg,#D4A017,#F5C842,#D4A017)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:2}}>PANGEON</span>
+          </a>
+          <div style={{display:"flex",alignItems:"center",gap:4}}>
+            <a href="/swap" style={{padding:"8px 16px",borderRadius:12,color:"rgba(255,255,255,0.5)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none",transition:"all 0.2s"}}>⚡ Swap</a>
+            <a href="/dust" style={{padding:"8px 16px",borderRadius:12,color:"#D4A017",background:"rgba(212,160,23,0.1)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>🧹 Sweep</a>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"flex-end"}}>
+            <RankBadge />
+            <ConnectButton client={client} wallets={WALLETS} theme="dark"
+              connectButton={{label:"Connect",style:{background:"linear-gradient(135deg,#D4A017,#F5C842)",color:"#0a0600",fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:"13px",borderRadius:"12px",padding:"8px 16px",border:"none",whiteSpace:"nowrap"}}}
+            />
+          </div>
+        </nav>
         <div style={{position:"relative",zIndex:10,paddingTop:80,paddingBottom:60}}>
           <div style={{textAlign:"center",marginBottom:32,padding:"0 20px"}}>
             <div style={{fontFamily:"'Cinzel',serif",fontSize:36,fontWeight:700,background:"linear-gradient(135deg,#D4A017,#F5C842)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:2,marginBottom:8}}>
