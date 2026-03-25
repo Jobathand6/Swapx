@@ -199,53 +199,10 @@ function PangeaBG() {
   );
 }
 
-// Multi-API swap function
+// Multi-API swap function - uses lib/swap.js
 async function executeSwap({chainId, fromToken, toToken, amountWei, decimals, walletAddress, slippage}) {
-  const NATIVE = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
-  const src = fromToken === "NATIVE" ? NATIVE : fromToken;
-  const dest = toToken === "NATIVE" ? NATIVE : toToken;
-  const amountReadable = (Number(amountWei) / Math.pow(10, decimals)).toString();
-
-  const OO_CHAINS = {1:"eth",137:"polygon",56:"bsc",42161:"arbitrum",43114:"avax",8453:"base",10:"optimism"};
-  const chain = OO_CHAINS[chainId] || "eth";
-
-  // Try OpenOcean
-  try {
-    const params = new URLSearchParams({type:"quote",chainId:chainId.toString(),inTokenAddress:src,outTokenAddress:dest,amount:amountReadable,slippage:slippage.toString(),account:walletAddress});
-    const res = await fetch(`/api/openocean?${params}`);
-    const data = await res.json();
-    if (data?.data?.to && data?.data?.data) {
-      return {
-        to: data.data.to,
-        data: data.data.data,
-        value: data.data.value || "0",
-        gas: data.data.estimatedGas,
-        source: "OpenOcean",
-      };
-    }
-  } catch(e) { console.log("OpenOcean failed:", e.message); }
-
-  // Try Paraswap
-  try {
-    const priceParams = new URLSearchParams({type:"price",network:chainId.toString(),srcToken:src,destToken:dest,amount:amountWei});
-    const priceRes = await fetch(`/api/paraswap?${priceParams}`);
-    const priceData = await priceRes.json();
-    if (priceData?.priceRoute) {
-      const txParams = new URLSearchParams({network:chainId.toString(),userAddress:walletAddress,ignoreChecks:"true",ignoreGasEstimate:"true",maxImpact:"100"});
-      const txRes = await fetch(`/api/paraswap?${txParams}`, {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({srcToken:src,destToken:dest,srcAmount:amountWei,priceRoute:priceData.priceRoute,userAddress:walletAddress,slippage:Math.floor(slippage*100),maxImpact:100}),
-      });
-      const txData = await txRes.json();
-      const tx = txData?.transaction || (txData?.to ? txData : null);
-      if (tx?.to) {
-        return { to: tx.to, data: tx.data, value: tx.value || "0", gas: tx.gas, source: "Paraswap" };
-      }
-    }
-  } catch(e) { console.log("Paraswap failed:", e.message); }
-
-  throw new Error("No swap route found. Please try again.");
+  const { getSwapQuote } = await import("../lib/swap");
+  return await getSwapQuote({ chainId, fromToken, toToken, amount: amountWei, decimals, walletAddress, slippage });
 }
 
 export default function SwapWidget() {
@@ -529,7 +486,7 @@ export default function SwapWidget() {
           <span className="nav-logo-text">PANGEON</span>
         </div>
         <div className="nav-links">
-          <button className="nav-link" onClick={()=>setShowDustSweeper(true)}>🧹 Sweep</button>
+          <a href="/dust" className="nav-link">🧹 Sweep</a>
         </div>
         <div className="nav-right">
           <button className="level-badge" style={{borderColor:`${currentLevel.color}40`,background:currentLevel.bg,color:currentLevel.color}} onClick={()=>setShowProfile(!showProfile)}>
