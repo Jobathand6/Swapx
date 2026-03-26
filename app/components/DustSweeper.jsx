@@ -362,17 +362,18 @@ export default function DustSweeper({ onClose, fullPage = false }) {
             <span style={{fontFamily:"'Cinzel',serif",fontSize:22,fontWeight:700,background:"linear-gradient(135deg,#D4A017,#F5C842,#D4A017)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:2}}>PANGEON</span>
           </a>
           <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <a href="/swap" style={{padding:"8px 16px",borderRadius:12,color:"rgba(255,255,255,0.5)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none",transition:"all 0.2s"}}>⚡ Swap</a>
-            <a href="/dust" style={{padding:"8px 16px",borderRadius:12,color:"#D4A017",background:"rgba(212,160,23,0.1)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>🧹 Sweep</a>
+<a href="/profile" style={{padding:"8px 16px",borderRadius:12,color:"rgba(255,255,255,0.5)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>👤 Profil</a>
+<a href="/swap" style={{padding:"8px 16px",borderRadius:12,color:"rgba(255,255,255,0.5)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>⚡ Swap</a>
+<a href="/dust" style={{padding:"8px 16px",borderRadius:12,color:"#D4A017",background:"rgba(212,160,23,0.1)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>🧹 Sweep</a>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"flex-end"}}>
-            <RankBadge />
+
             <ConnectButton client={client} wallets={WALLETS} theme="dark"
               connectButton={{label:"Connect",style:{background:"linear-gradient(135deg,#D4A017,#F5C842)",color:"#0a0600",fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:"13px",borderRadius:"12px",padding:"8px 16px",border:"none",whiteSpace:"nowrap"}}}
             />
           </div>
         </nav>
-        <div style={{position:"relative",zIndex:10,paddingTop:80,paddingBottom:60}}>
+        <div style={{position:"relative",zIndex:10,paddingTop:120,paddingBottom:60}}>
           <div style={{textAlign:"center",marginBottom:32,padding:"0 20px"}}>
             <div style={{fontFamily:"'Cinzel',serif",fontSize:36,fontWeight:700,background:"linear-gradient(135deg,#D4A017,#F5C842)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:2,marginBottom:8}}>
               🧹 Dust Sweeper
