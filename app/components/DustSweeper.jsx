@@ -1,21 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useActiveAccount, ConnectButton } from "thirdweb/react";
-import { createThirdwebClient } from "thirdweb";
-import { createWallet } from "thirdweb/wallets";
+import { useAppKitAccount } from "@reown/appkit/react";
 
-const client = createThirdwebClient({
-  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "demo",
-});
 
-const WALLETS = [
-  createWallet("io.metamask"),
-  createWallet("com.coinbase.wallet"),
-  createWallet("me.rainbow"),
-  createWallet("com.trustwallet.app"),
-  createWallet("walletConnect"),
-];
+
+
+
+
 
 const CHAINS_CONFIG = [
   { id: "0x2105", name: "Base",      symbol: "ETH",  color: "#0052FF", moralisId: "0x2105", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg", available: true },
@@ -83,7 +75,7 @@ function TokenImg({ src, size = 28 }) {
 }
 
 export default function DustSweeper({ onClose, fullPage = false }) {
-  const account = useActiveAccount();
+  const { address: account } = useAppKitAccount();
   const [selectedChain, setSelectedChain] = useState(CHAINS_CONFIG[0]);
   const [threshold, setThreshold] = useState(5);
   const [customThreshold, setCustomThreshold] = useState("");
@@ -377,9 +369,7 @@ export default function DustSweeper({ onClose, fullPage = false }) {
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"flex-end"}}>
 
-            <ConnectButton client={client} wallets={WALLETS} theme="dark"
-              connectButton={{label:"Connect",style:{background:"linear-gradient(135deg,#D4A017,#F5C842)",color:"#0a0600",fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:"13px",borderRadius:"12px",padding:"8px 16px",border:"none",whiteSpace:"nowrap"}}}
-            />
+<appkit-button />
           </div>
         </nav>
         <div style={{position:"relative",zIndex:10,paddingTop:120,paddingBottom:60}}>

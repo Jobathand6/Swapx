@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAppKitAccount } from "@reown/appkit/react";
+import { useAppKit } from "@reown/appkit/react";
 import { base } from "thirdweb/chains";
 
 
@@ -123,7 +124,7 @@ function PriceTicker({ prices, changes }) {
 
 // ─── Composant principal
 export default function SwapWidget() {
-const { address: account, isConnected } = useAccount();
+const { address: account, isConnected } = useAppKitAccount();
 const { switchChain } = useSwitchChain();
 
   const [chain, setChain] = useState("base");
@@ -378,7 +379,7 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
 
 
 {/* Wallet connect — RainbowKit */}
-<ConnectButton />
+<appkit-button />
         </div>
       </nav>
 

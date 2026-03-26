@@ -1,13 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { createThirdwebClient } from "thirdweb";
-import { createWallet } from "thirdweb/wallets";
+import { useAppKitAccount } from "@reown/appkit/react";
 
-const client = createThirdwebClient({ clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "demo" });
-const WALLETS = [createWallet("io.metamask"), createWallet("com.coinbase.wallet"), createWallet("walletConnect")];
+
 
 const LEVELS = [
   { name: "Fossil",  emoji: "🪨", min: 0,     max: 49,       color: "#8B7355", bg: "rgba(139,115,85,0.15)",   desc: "Effectue ton premier swap pour commencer l'aventure." },
@@ -28,7 +24,7 @@ const STARS = Array.from({ length: 36 }, (_, i) => ({
 }));
 
 export default function ProfilePage() {
- const { address: account } = useAccount();
+ const { address: account } = useAppKitAccount();
   const [swapCount,    setSwapCount]    = useState(0);
   const [swapVolume,   setSwapVolume]   = useState(0);
   const [dustVolume,   setDustVolume]   = useState(0);
@@ -84,10 +80,7 @@ export default function ProfilePage() {
           <a href="/dust"    style={{ padding: "8px 16px", borderRadius: 12, border: "none", background: "transparent", color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>🧹 Sweep</a>
         </div>
 <div style={{ display: "flex", justifyContent: "flex-end" }}>
-  <ConnectButton client={client} wallets={WALLETS} theme="dark"
-    connectButton={{ label: "Connect", style: { background: "linear-gradient(135deg,#D4A017,#F5C842)", color: "#0a0600", fontFamily: "'Cinzel',serif", fontWeight: 700, fontSize: "13px", borderRadius: "12px", padding: "8px 16px", border: "none" } }}
-    connectedButton={{ style: { background: "rgba(212,160,23,0.08)", color: "#D4A017", fontFamily: "'DM Sans',sans-serif", fontWeight: 600, fontSize: "13px", borderRadius: "12px", padding: "8px 12px", border: "1px solid rgba(212,160,23,0.2)" } }}
-  />
+<appkit-button />
 </div>
 
       </nav>
