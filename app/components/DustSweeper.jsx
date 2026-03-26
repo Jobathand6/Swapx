@@ -18,13 +18,13 @@ const WALLETS = [
 ];
 
 const CHAINS_CONFIG = [
-  { id: "0x1",    name: "Ethereum",  symbol: "ETH",  color: "#627EEA", moralisId: "0x1",    logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
-  { id: "0x89",   name: "Polygon",   symbol: "MATIC",color: "#8247E5", moralisId: "0x89",   logo: "https://assets.coingecko.com/coins/images/4713/small/polygon.png" },
-  { id: "0x38",   name: "BNB Chain", symbol: "BNB",  color: "#F3BA2F", moralisId: "0x38",   logo: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" },
-  { id: "0xa4b1", name: "Arbitrum",  symbol: "ARB",  color: "#28A0F0", moralisId: "0xa4b1", logo: "https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg" },
-  { id: "0xa86a", name: "Avalanche", symbol: "AVAX", color: "#E84142", moralisId: "0xa86a", logo: "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png" },
-  { id: "0x2105", name: "Base",      symbol: "ETH",  color: "#0052FF", moralisId: "0x2105", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg" },
-  { id: "0xa",    name: "Optimism",  symbol: "ETH",  color: "#FF0420", moralisId: "0xa",    logo: "https://assets.coingecko.com/coins/images/25244/small/Optimism.png" },
+  { id: "0x2105", name: "Base",      symbol: "ETH",  color: "#0052FF", moralisId: "0x2105", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg", available: true },
+  { id: "0x1",    name: "Ethereum",  symbol: "ETH",  color: "#627EEA", moralisId: "0x1",    logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png", available: false },
+  { id: "0x89",   name: "Polygon",   symbol: "MATIC",color: "#8247E5", moralisId: "0x89",   logo: "https://assets.coingecko.com/coins/images/4713/small/polygon.png", available: false },
+  { id: "0x38",   name: "BNB Chain", symbol: "BNB",  color: "#F3BA2F", moralisId: "0x38",   logo: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png", available: false },
+  { id: "0xa4b1", name: "Arbitrum",  symbol: "ARB",  color: "#28A0F0", moralisId: "0xa4b1", logo: "https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg", available: false },
+  { id: "0xa86a", name: "Avalanche", symbol: "AVAX", color: "#E84142", moralisId: "0xa86a", logo: "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png", available: false },
+  { id: "0xa",    name: "Optimism",  symbol: "ETH",  color: "#FF0420", moralisId: "0xa",    logo: "https://assets.coingecko.com/coins/images/25244/small/Optimism.png", available: false },
 ];
 
 const OO_CHAIN_NAMES = {
@@ -231,9 +231,18 @@ export default function DustSweeper({ onClose, fullPage = false }) {
       <div className="dust-card">
         <div className="dust-label">Select chain to scan</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {CHAINS_CONFIG.map(c => (
-            <button key={c.id} className={`chain-btn ${selectedChain.id===c.id?"active":""}`} onClick={()=>{setSelectedChain(c);setTokens([]);setScanned(false);}}>
+{CHAINS_CONFIG.map(c => (
+            <button key={c.id}
+              className={`chain-btn ${selectedChain.id===c.id?"active":""} ${!c.available?"disabled":""}`}
+              onClick={()=>{ if(!c.available) return; setSelectedChain(c);setTokens([]);setScanned(false);}}
+              style={{ position:"relative", opacity: c.available ? 1 : 0.5, cursor: c.available ? "pointer" : "not-allowed" }}
+            >
               <TokenImg src={c.logo} size={16}/>{c.name}
+              {!c.available && (
+                <span style={{ marginLeft:6, fontSize:10, padding:"1px 6px", borderRadius:20, background:"rgba(212,160,23,0.15)", color:"#D4A017", border:"1px solid rgba(212,160,23,0.3)", fontWeight:600, whiteSpace:"nowrap" }}>
+                  Soon
+                </span>
+              )}
             </button>
           ))}
         </div>
