@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useActiveAccount, ConnectButton } from "thirdweb/react";
+import { useAccount } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { createThirdwebClient } from "thirdweb";
 import { createWallet } from "thirdweb/wallets";
 
@@ -27,7 +28,7 @@ const STARS = Array.from({ length: 36 }, (_, i) => ({
 }));
 
 export default function ProfilePage() {
-  const account = useActiveAccount();
+ const { address: account } = useAccount();
   const [swapCount,    setSwapCount]    = useState(0);
   const [swapVolume,   setSwapVolume]   = useState(0);
   const [dustVolume,   setDustVolume]   = useState(0);

@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useActiveAccount, useSwitchActiveWalletChain, ConnectButton } from "thirdweb/react";
+import { useAccount, useSwitchChain } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { base } from "thirdweb/chains";
-import { createThirdwebClient } from "thirdweb";
-import { createWallet } from "thirdweb/wallets";
+
+
 import SolanaSwap from "./SolanaSwap";
 
-const client = createThirdwebClient({ clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "demo" });
-const WALLETS = [createWallet("io.metamask"), createWallet("com.coinbase.wallet"), createWallet("walletConnect")];
+
+
 
 // ─── Token logos
 const L = {
@@ -122,8 +123,8 @@ function PriceTicker({ prices, changes }) {
 
 // ─── Composant principal
 export default function SwapWidget() {
-  const account = useActiveAccount();
-  const switchChain = useSwitchActiveWalletChain();
+const { address: account, isConnected } = useAccount();
+const { switchChain } = useSwitchChain();
 
   const [chain, setChain] = useState("base");
   const isSolana = chain === "solana";
@@ -176,18 +177,18 @@ export default function SwapWidget() {
 
   // Fetch balances Base
   useEffect(() => {
-    if (!account?.address || isSolana) { setBalances({}); return; }
+if (!account || isSolana) { setBalances({}); return; }
     const fetchBalances = async () => {
       try {
         const chainHex = "0x" + (8453).toString(16);
-        const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${account.address}/erc20?chain=${chainHex}`, {
+const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${account}/erc20?chain=${chainHex}`, {
           headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" },
         });
         const data = await res.json();
         const nb = {};
         const list = Array.isArray(data) ? data : (data.result || []);
         list.forEach(t => { nb[t.token_address.toLowerCase()] = Number(t.balance) / Math.pow(10, Number(t.decimals)); });
-        const nativeRes = await fetch(`https://deep-index.moralis.io/api/v2.2/${account.address}/balance?chain=${chainHex}`, {
+const nativeRes = await fetch(`https://deep-index.moralis.io/api/v2.2/${account}/balance?chain=${chainHex}`, {
           headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" },
         });
         const nativeData = await nativeRes.json();
@@ -196,7 +197,7 @@ export default function SwapWidget() {
       } catch { }
     };
     fetchBalances();
-  }, [account?.address, isSolana]);
+}, [account, isSolana]);
 
   const getPrice = useCallback((sym) => {
     const id = COINGECKO_IDS[sym];
@@ -243,7 +244,7 @@ export default function SwapWidget() {
     setChain(c);
     setFromToken(BASE_TOKENS[0]); setToToken(BASE_TOKENS[1]);
     setFromAmount(""); setToAmount(""); setSwapSource(null); setError(null); setTxHash(null);
-    if (c === "base") switchChain(base);
+if (c === "base") switchChain({ chainId: base.id });
   };
 
   const handleFlip = () => {
@@ -259,7 +260,7 @@ export default function SwapWidget() {
       const decimals = fromToken.decimals;
       const amountWei = BigInt(Math.floor(Number(fromAmount) * Math.pow(10, decimals))).toString();
       const { getSwapQuote } = await import("../lib/swap");
-      const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, toToken: toToken.address, amount: amountWei, decimals, walletAddress: account.address, slippage });
+const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, toToken: toToken.address, amount: amountWei, decimals, walletAddress: account, slippage });
       setSwapSource(quote.source);
       if (fromToken.address !== "NATIVE") {
         try {
@@ -376,11 +377,8 @@ export default function SwapWidget() {
 
 
 
-          {/* Wallet connect — thirdweb */}
-<ConnectButton client={client} wallets={WALLETS} theme="dark"
-  connectButton={{ label: "Connect", style: { background: "linear-gradient(135deg,#D4A017,#F5C842)", color: "#0a0600", fontFamily: "'Cinzel',serif", fontWeight: 700, fontSize: "13px", borderRadius: "12px", padding: "8px 16px", border: "none", letterSpacing: "0.5px" } }}
-  connectedButton={{ style: { background: "rgba(212,160,23,0.08)", color: "#D4A017", fontFamily: "'DM Sans',sans-serif", fontWeight: 600, fontSize: "13px", borderRadius: "12px", padding: "8px 12px", border: "1px solid rgba(212,160,23,0.2)" } }}
-/>
+{/* Wallet connect — RainbowKit */}
+<ConnectButton />
         </div>
       </nav>
 
@@ -490,8 +488,8 @@ export default function SwapWidget() {
                 {error  && <div className="pg-error">{error}</div>}
                 {txHash && <div className="pg-success">✅ Swap OK ! <span style={{ fontSize: 11, opacity: 0.65, wordBreak: "break-all" }}>{txHash}</span></div>}
 
-                <button className={`pg-swap-btn ${loading ? "busy" : (account && fromAmount) ? "ready" : "idle"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
-                  {loading ? "⟳ Swapping..." : account ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Enter an amount") : "Connect your wallet"}
+                <button className={`pg-swap-btn ${loading ? "busy" : (isConnected && fromAmount) ? "ready" : "idle"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
+                  {loading ? "⟳ Swapping..." : isConnected ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Enter an amount") : "Connect your wallet"}
                 </button>
               </div>
             </div>

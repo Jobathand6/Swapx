@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Connection, VersionedTransaction } from "@solana/web3.js";
 
 const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
@@ -41,19 +43,15 @@ export default function SolanaSwap() {
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [error,        setError]        = useState(null);
   const [txHash,       setTxHash]       = useState(null);
-  const [walletAddress,setWalletAddress]= useState(null);
+ const { publicKey, sendTransaction, connected } = useWallet();
+const { connection } = useConnection();
+const walletAddress = publicKey?.toString() || null;
   const [slippage,     setSlippage]     = useState(0.5);
   const [quoteData,    setQuoteData]    = useState(null);
   const [searchQuery,  setSearchQuery]  = useState("");
   const [solBalances,  setSolBalances]  = useState({});
 
-  useEffect(() => {
-    const check = () => {
-      if (window?.phantom?.solana?.isConnected) setWalletAddress(window.phantom.solana.publicKey?.toString());
-      else if (window?.solflare?.isConnected) setWalletAddress(window.solflare.publicKey?.toString());
-    };
-    check();
-  }, []);
+
 
   useEffect(() => {
     if (!walletAddress) return;
@@ -108,40 +106,23 @@ export default function SolanaSwap() {
     return () => clearTimeout(t);
   }, [fromAmount, fromToken, toToken, slippage]);
 
-  const connectWallet = async () => {
-    try {
-      if (window?.phantom?.solana) {
-        const resp = await window.phantom.solana.connect();
-        setWalletAddress(resp.publicKey.toString());
-      } else if (window?.solflare) {
-        await window.solflare.connect();
-        setWalletAddress(window.solflare.publicKey.toString());
-      } else {
-        setError("Install Phantom or Solflare!");
-      }
-    } catch { setError("Connection cancelled."); }
-  };
 
-  const handleSwap = async () => {
-    if (!walletAddress) { setError("Connect your Solana wallet!"); return; }
+
+const handleSwap = async () => {
+    if (!connected || !publicKey) { setError("Connect your Solana wallet!"); return; }
     if (!fromAmount || Number(fromAmount) === 0) { setError("Enter an amount."); return; }
     if (!quoteData) { setError("Waiting for quote..."); return; }
     setError(null); setLoading(true);
     try {
       const swapRes = await fetch("/api/solana", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quoteResponse: quoteData, userPublicKey: walletAddress, wrapAndUnwrapSol: true }),
+        body: JSON.stringify({ quoteResponse: quoteData, userPublicKey: publicKey.toString(), wrapAndUnwrapSol: true }),
       });
       const swapData = await swapRes.json();
       if (!swapData.swapTransaction) throw new Error("Invalid transaction");
       const swapTransactionBuf = Buffer.from(swapData.swapTransaction, "base64");
       const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
-      const connection = new Connection(SOLANA_RPC, "confirmed");
-      let signedTx;
-      if (window?.phantom?.solana) signedTx = await window.phantom.solana.signTransaction(transaction);
-      else if (window?.solflare) signedTx = await window.solflare.signTransaction(transaction);
-      const rawTx = signedTx.serialize();
-      const txid = await connection.sendRawTransaction(rawTx, { skipPreflight: true, maxRetries: 3 });
+      const txid = await sendTransaction(transaction, connection, { skipPreflight: true, maxRetries: 3 });
       await connection.confirmTransaction(txid, "confirmed");
       setTxHash(txid);
       setFromAmount(""); setToAmount("");
@@ -257,10 +238,17 @@ export default function SolanaSwap() {
       {error  && <div style={{ margin: "4px 0", padding: "10px 14px", borderRadius: 13, background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.18)", color: "#ff7070", fontSize: 13 }}>{error}</div>}
       {txHash && <div style={{ margin: "4px 0", padding: "10px 14px", borderRadius: 13, background: "rgba(20,241,149,0.06)", border: "1px solid rgba(20,241,149,0.2)", color: "#14F195", fontSize: 13 }}>✅ Swap OK ! <a href={`https://solscan.io/tx/${txHash}`} target="_blank" rel="noreferrer" style={{ color: "#14F195" }}>View ↗</a></div>}
 
-      {/* Swap button */}
-      <button className={`sol-swap-btn ${loading ? "busy" : (walletAddress && fromAmount) ? "ready" : "idle"}`} onClick={walletAddress ? handleSwap : connectWallet} disabled={loading}>
-        {loading ? "⟳ Swapping..." : walletAddress ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Enter an amount") : "Connect Solana Wallet"}
-      </button>
+{/* Wallet Solana */}
+{!connected && (
+  <WalletMultiButton style={{ width: "100%", marginTop: 6, padding: "17px", borderRadius: 20, border: "none", fontFamily: "'Cinzel',serif", fontSize: 15, fontWeight: 700, letterSpacing: "0.8px", background: "linear-gradient(135deg,#9945FF,#14F195)", color: "#fff", justifyContent: "center" }} />
+)}
+
+{/* Swap button */}
+{connected && (
+  <button className={`sol-swap-btn ${loading ? "busy" : fromAmount ? "ready" : "idle"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
+    {loading ? "⟳ Swapping..." : fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Enter an amount"}
+  </button>
+)}
 
       {/* Token modal */}
       {(showFromList || showToList) && (
