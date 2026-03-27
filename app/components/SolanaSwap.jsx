@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useAppKitProvider, useAppKitConnection } from "@reown/appkit/react";
+import { useAppKitAccount, useAppKit } from "@reown/appkit/react";
+
 import { Connection, VersionedTransaction } from "@solana/web3.js";
 
-const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
+const SOLANA_RPC = "/api/solana-rpc";
 
 const POPULAR_TOKENS = [
   { symbol: "SOL",   name: "Solana",         mint: "So11111111111111111111111111111111111111112",  logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png", decimals: 9 },
@@ -43,9 +44,16 @@ export default function SolanaSwap() {
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [error,        setError]        = useState(null);
   const [txHash,       setTxHash]       = useState(null);
- const { publicKey, sendTransaction, connected } = useWallet();
-const { connection } = useConnection();
-const walletAddress = publicKey?.toString() || null;
+ const { walletProvider } = useAppKitProvider("solana");
+const connection = { rpcEndpoint: "/api/solana-rpc" };
+const publicKey = walletProvider?.publicKey || null;
+const sendTransaction = walletProvider?.sendTransaction?.bind(walletProvider) || null;
+const { isConnected: connected, address, caipAddress } = useAppKitAccount();
+
+
+const rawAddress = address?.includes(":") ? address.split(":").pop() : address;
+const walletAddress = rawAddress || publicKey?.toString() || null;
+console.log("walletAddress:", walletAddress, "address:", address);
   const [slippage,     setSlippage]     = useState(0.5);
   const [quoteData,    setQuoteData]    = useState(null);
   const [searchQuery,  setSearchQuery]  = useState("");
@@ -58,13 +66,13 @@ const walletAddress = publicKey?.toString() || null;
     const fetch_ = async () => {
       try {
         const nb = {};
-        const res = await fetch("https://api.mainnet-beta.solana.com", {
+        const res = await fetch("/api/solana-rpc", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [walletAddress] }),
         });
         const data = await res.json();
         if (data.result?.value !== undefined) nb["So11111111111111111111111111111111111111112"] = data.result.value / 1e9;
-        const splRes = await fetch("https://api.mainnet-beta.solana.com", {
+        const splRes = await fetch("/api/solana-rpc", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "getTokenAccountsByOwner", params: [walletAddress, { programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" }, { encoding: "jsonParsed" }] }),
         });
@@ -238,17 +246,12 @@ const handleSwap = async () => {
       {error  && <div style={{ margin: "4px 0", padding: "10px 14px", borderRadius: 13, background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.18)", color: "#ff7070", fontSize: 13 }}>{error}</div>}
       {txHash && <div style={{ margin: "4px 0", padding: "10px 14px", borderRadius: 13, background: "rgba(20,241,149,0.06)", border: "1px solid rgba(20,241,149,0.2)", color: "#14F195", fontSize: 13 }}>✅ Swap OK ! <a href={`https://solscan.io/tx/${txHash}`} target="_blank" rel="noreferrer" style={{ color: "#14F195" }}>View ↗</a></div>}
 
-{/* Wallet Solana */}
-{!connected && (
-  <WalletMultiButton style={{ width: "100%", marginTop: 6, padding: "17px", borderRadius: 20, border: "none", fontFamily: "'Cinzel',serif", fontSize: 15, fontWeight: 700, letterSpacing: "0.8px", background: "linear-gradient(135deg,#9945FF,#14F195)", color: "#fff", justifyContent: "center" }} />
-)}
+
 
 {/* Swap button */}
-{connected && (
-  <button className={`sol-swap-btn ${loading ? "busy" : fromAmount ? "ready" : "idle"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
-    {loading ? "⟳ Swapping..." : fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Enter an amount"}
-  </button>
-)}
+<button className={`sol-swap-btn ${loading ? "busy" : (connected && fromAmount) ? "ready" : "idle"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
+  {loading ? "⟳ Swapping..." : connected ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Enter an amount") : "Connect your wallet"}
+</button>
 
       {/* Token modal */}
       {(showFromList || showToList) && (
