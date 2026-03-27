@@ -125,6 +125,7 @@ function PriceTicker({ prices, changes }) {
 // ─── Composant principal
 export default function SwapWidget() {
 const { address: account, isConnected } = useAppKitAccount();
+const { address: evmAddress } = useAccount();
 const { switchChain } = useSwitchChain();
 
   const [chain, setChain] = useState("base");
@@ -178,18 +179,18 @@ const { switchChain } = useSwitchChain();
 
   // Fetch balances Base
   useEffect(() => {
-if (!account || isSolana) { setBalances({}); return; }
+if (!evmAddress || isSolana) { setBalances({}); return; }
     const fetchBalances = async () => {
       try {
         const chainHex = "0x" + (8453).toString(16);
-const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${account}/erc20?chain=${chainHex}`, {
+const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${evmAddress}/erc20?chain=${chainHex}`, {
           headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" },
         });
         const data = await res.json();
         const nb = {};
         const list = Array.isArray(data) ? data : (data.result || []);
         list.forEach(t => { nb[t.token_address.toLowerCase()] = Number(t.balance) / Math.pow(10, Number(t.decimals)); });
-const nativeRes = await fetch(`https://deep-index.moralis.io/api/v2.2/${account}/balance?chain=${chainHex}`, {
+const nativeRes = await fetch(`https://deep-index.moralis.io/api/v2.2/${evmAddress}/balance?chain=${chainHex}`, {
           headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" },
         });
         const nativeData = await nativeRes.json();
@@ -198,18 +199,18 @@ const nativeRes = await fetch(`https://deep-index.moralis.io/api/v2.2/${account}
       } catch { }
     };
     fetchBalances();
-}, [account, isSolana]);
+}, [evmAddress, isSolana]);
 
   const getPrice = useCallback((sym) => {
     const id = COINGECKO_IDS[sym];
     return (id && prices[id]) ? prices[id] : (FALLBACK_PRICES[sym] || 1);
   }, [prices]);
 
-  const getBalance = useCallback((token) => {
-    if (!token || !account) return null;
-    if (token.address === "NATIVE") return balances["NATIVE"] ?? null;
-    return balances[token.address.toLowerCase()] ?? null;
-  }, [balances, account]);
+const getBalance = useCallback((token) => {
+  if (!token || !evmAddress) return null;
+  if (token.address === "NATIVE") return balances["NATIVE"] ?? null;
+  return balances[token.address.toLowerCase()] ?? null;
+}, [balances, evmAddress]);
 
   // Quote automatique
   useEffect(() => {
