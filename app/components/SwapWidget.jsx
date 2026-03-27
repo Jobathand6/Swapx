@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
-import { useAppKitAccount } from "@reown/appkit/react";
-import { useAppKit } from "@reown/appkit/react";
+import { useAppKitAccount, useAppKit } from "@reown/appkit/react";
+
 import { base } from "thirdweb/chains";
 
 
@@ -125,6 +125,7 @@ function PriceTicker({ prices, changes }) {
 // ─── Composant principal
 export default function SwapWidget() {
 const { address: account, isConnected } = useAppKitAccount();
+
 const { address: evmAddress } = useAccount();
 const { switchChain } = useSwitchChain();
 
@@ -302,7 +303,7 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
         .pg-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
         .pg-logo-text{font-family:'Cinzel',serif;font-size:22px;font-weight:700;background:linear-gradient(135deg,#D4A017,#F5C842,#D4A017);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;}
         .pg-nav-links{display:flex;align-items:center;gap:4px;justify-content:center;}
-        .pg-nav-link{padding:8px 16px;border-radius:12px;border:none;background:transparent;color:rgba(255,255,255,0.45);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+        .pg-nav-link{padding:8px 16px;border-radius:12px;border:none;background:transparent;color:#ffffff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
         .pg-nav-link:hover,.pg-nav-link.active{color:#D4A017;background:rgba(212,160,23,0.08);}
         .pg-nav-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;position:relative;}
         .pg-level-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:all 0.2s;border:1px solid;background:transparent;white-space:nowrap;}
@@ -379,7 +380,7 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
 
 
 
-{/* Wallet connect — RainbowKit */}
+{/* Wallet connect */}
 <appkit-button />
         </div>
       </nav>

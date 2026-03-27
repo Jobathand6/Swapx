@@ -206,7 +206,7 @@ export default function DustSweeper({ onClose, fullPage = false }) {
         @keyframes pulse{0%,100%{opacity:0.1}50%{opacity:0.2}}
         .dust-card{background:rgba(15,10,5,0.85);border:1px solid rgba(212,160,23,0.15);border-radius:24px;padding:20px 24px;backdrop-filter:blur(20px);box-shadow:0 8px 48px rgba(0,0,0,0.6);margin-bottom:16px;}
         .dust-label{font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:10px;}
-        .chain-btn{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;}
+        .chain-btn{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#ffffff;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;}
         .chain-btn.active{border-color:rgba(212,160,23,0.4);background:rgba(212,160,23,0.1);color:#D4A017;}
         .chain-btn:hover{border-color:rgba(212,160,23,0.2);color:#fff;}
         .thresh-btn{padding:8px 16px;border-radius:10px;border:1px solid rgba(212,160,23,0.1);background:transparent;color:rgba(255,255,255,0.4);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
@@ -363,8 +363,8 @@ export default function DustSweeper({ onClose, fullPage = false }) {
             <span style={{fontFamily:"'Cinzel',serif",fontSize:22,fontWeight:700,background:"linear-gradient(135deg,#D4A017,#F5C842,#D4A017)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:2}}>PANGEON</span>
           </a>
           <div style={{display:"flex",alignItems:"center",gap:4}}>
-<a href="/profile" style={{padding:"8px 16px",borderRadius:12,color:"rgba(255,255,255,0.5)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>👤 Profil</a>
-<a href="/swap" style={{padding:"8px 16px",borderRadius:12,color:"rgba(255,255,255,0.5)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>⚡ Swap</a>
+<a href="/profile" style={{padding:"8px 16px",borderRadius:12,color:"#ffffff",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>👤 Profil</a>
+<a href="/swap" style={{padding:"8px 16px",borderRadius:12,color:"#ffffff",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>⚡ Swap</a>
 <a href="/dust" style={{padding:"8px 16px",borderRadius:12,color:"#D4A017",background:"rgba(212,160,23,0.1)",fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,textDecoration:"none"}}>🧹 Sweep</a>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"flex-end"}}>
@@ -395,7 +395,7 @@ export default function DustSweeper({ onClose, fullPage = false }) {
       <div style={{background:"rgba(12,8,3,0.98)",border:"1px solid rgba(212,160,23,0.2)",borderRadius:24,width:"100%",maxWidth:560,maxHeight:"88vh",overflowY:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.8)",scrollbarWidth:"none"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"20px 24px 16px",borderBottom:"1px solid rgba(212,160,23,0.1)",position:"sticky",top:0,background:"rgba(12,8,3,0.98)",zIndex:10}}>
           <span style={{fontFamily:"'Cinzel',serif",fontSize:18,fontWeight:700,color:"#D4A017",letterSpacing:1}}>🧹 Dust Sweeper</span>
-          {onClose && <button onClick={onClose} style={{width:32,height:32,borderRadius:8,border:"none",background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.5)",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>}
+          {onClose && <button onClick={onClose} style={{width:32,height:32,borderRadius:8,border:"none",background:"rgba(255,255,255,0.06)",color:"#ffffff",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>}
         </div>
         <div style={{padding:"20px 24px"}}>
           {content}

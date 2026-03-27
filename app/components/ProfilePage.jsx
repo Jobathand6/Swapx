@@ -76,11 +76,11 @@ export default function ProfilePage() {
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <a href="/profile" style={{ padding: "8px 16px", borderRadius: 12, border: "none", background: "rgba(212,160,23,0.08)", color: "#D4A017", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>👤 Profil</a>
-          <a href="/swap"    style={{ padding: "8px 16px", borderRadius: 12, border: "none", background: "transparent", color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>⚡ Swap</a>
-          <a href="/dust"    style={{ padding: "8px 16px", borderRadius: 12, border: "none", background: "transparent", color: "rgba(255,255,255,0.45)", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>🧹 Sweep</a>
+          <a href="/swap"    style={{ padding: "8px 16px", borderRadius: 12, border: "none", background: "transparent", color: "#ffffff", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>⚡ Swap</a>
+          <a href="/dust"    style={{ padding: "8px 16px", borderRadius: 12, border: "none", background: "transparent", color: "#ffffff", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>🧹 Sweep</a>
         </div>
 <div style={{ display: "flex", justifyContent: "flex-end" }}>
-<appkit-button />
+  <appkit-button />
 </div>
 
       </nav>

@@ -35,10 +35,12 @@ createAppKit({
   features: {
     analytics: false,
   },
-  themeMode: "dark",
+themeMode: "dark",
   themeVariables: {
     "--w3m-accent": "#D4A017",
+    "--w3m-color-mix": "#D4A017",
     "--w3m-border-radius-master": "12px",
+    "--w3m-font-family": "'DM Sans', sans-serif",
   },
 });
 
