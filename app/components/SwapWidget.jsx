@@ -314,17 +314,17 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
         .pg-chain-tab.base{background:rgba(0,82,255,0.14);color:#fff;border:1px solid rgba(0,82,255,0.28);}
         .pg-chain-tab.sol{background:rgba(153,69,255,0.14);color:#fff;border:1px solid rgba(153,69,255,0.28);}
         .pg-card{background:rgba(12,8,3,0.9);border:1px solid rgba(212,160,23,0.15);border-radius:24px;padding:8px;backdrop-filter:blur(24px);}
-        .pg-token-box{background:rgba(20,14,6,0.9);border:1px solid rgba(212,160,23,0.08);border-radius:20px;padding:16px 20px;transition:border-color 0.2s;}
-        .pg-token-box:hover{border-color:rgba(212,160,23,0.18);}
-        .pg-token-pick{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 8px;border-radius:50px;border:1px solid rgba(212,160,23,0.2);background:linear-gradient(135deg,rgba(212,160,23,0.12),rgba(212,160,23,0.05));color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+        .pg-token-box{background:rgba(20,14,6,0.9);border:1px solid rgba(0,82,255,0.08);border-radius:20px;padding:16px 20px;transition:border-color 0.2s;}
+        .pg-token-box:hover{border-color:rgba(0,82,255,0.3);}
+       .pg-token-pick{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 8px;border-radius:50px;border:1px solid rgba(0,82,255,0.2);background:linear-gradient(135deg,rgba(0,82,255,0.12),rgba(0,82,255,0.05));color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
         .pg-token-pick:hover{transform:scale(1.02);border-color:rgba(212,160,23,0.35);}
         .pg-amount{flex:1;background:transparent;border:none;color:#fff;font-family:'Cinzel',serif;font-size:30px;font-weight:600;text-align:right;outline:none;min-width:0;width:100%;}
         .pg-amount::placeholder{color:rgba(255,255,255,0.1);}
         .pg-amount:read-only{color:rgba(255,255,255,0.38);}
         .pg-amount::-webkit-outer-spin-button,.pg-amount::-webkit-inner-spin-button{-webkit-appearance:none;}
         .pg-amount[type=number]{-moz-appearance:textfield;}
-        .pg-arrow{width:40px;height:40px;border-radius:12px;background:rgba(8,5,1,0.95);border:2px solid rgba(212,160,23,0.18);color:rgba(212,160,23,0.55);font-size:16px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;}
-        .pg-arrow:hover{border-color:#D4A017;color:#D4A017;transform:rotate(180deg);}
+        .pg-arrow{width:40px;height:40px;border-radius:12px;background:rgba(8,5,1,0.95);border:2px solid rgba(0,82,255,0.18);color:rgba(0,82,255,0.55);font-size:16px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;}
+        .pg-arrow:hover{border-color:#0052FF;color:#0052FF;transform:rotate(180deg);}
         .pg-quote{padding:12px 18px;background:rgba(212,160,23,0.03);border-radius:14px;margin:6px 0 2px;border:1px solid rgba(212,160,23,0.07);}
         .pg-quote-row{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:5px;}
         .pg-quote-row:last-child{margin-bottom:0;}
@@ -343,13 +343,13 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
         .pg-hist-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(212,160,23,0.05);}
         .pg-hist-item:last-child{border-bottom:none;padding-bottom:0;}
         .pg-levelup{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(12,8,3,0.95);border-radius:20px;padding:14px 22px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:pg-levelup 0.5s ease forwards;}
-        .pg-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
-        .pg-modal{background:rgba(10,7,2,0.98);border:1px solid rgba(212,160,23,0.2);border-radius:24px;width:100%;max-width:400px;max-height:75vh;display:flex;flex-direction:column;}
+        .pg-modal-overlay{position:fixed;inset:0;background:transparent;z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(0px);}
+        .pg-modal{background:rgba(10,7,2,0.98);border:1px solid rgba(0,82,255,0.2);border-radius:24px;width:100%;max-width:400px;max-height:75vh;display:flex;flex-direction:column;}
         .pg-modal-list{overflow-y:auto;padding:8px 10px;scrollbar-width:thin;scrollbar-color:rgba(212,160,23,0.15) transparent;}
         .pg-tok-item{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;background:transparent;border:none;border-radius:12px;color:#fff;cursor:pointer;text-align:left;transition:background 0.15s;font-family:'DM Sans',sans-serif;}
         .pg-tok-item:hover{background:rgba(212,160,23,0.05);}
-        .pg-settings-btn{width:32px;height:32px;border-radius:9px;border:none;background:transparent;color:rgba(212,160,23,0.38);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
-        .pg-settings-btn:hover{background:rgba(212,160,23,0.07);color:#D4A017;}
+        .pg-settings-btn{width:32px;height:32px;border-radius:9px;border:none;background:transparent;color:rgba(0,82,255,0.38);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+        .pg-settings-btn:hover{background:rgba(0,82,255,0.07);color:#0052FF;}
       `}</style>
 
       <PangeaBG />
@@ -372,9 +372,9 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
           <span className="pg-logo-text">PANGEON</span>
         </a>
         <div className="pg-nav-links">
-<a href="/profile" className="pg-nav-link">👤 Profil</a>
 <a href="/swap" className="pg-nav-link active">⚡ Swap</a>
 <a href="/dust" className="pg-nav-link">🧹 Sweep</a>
+<a href="/profile" className="pg-nav-link">👤 Profile</a>
         </div>
         <div className="pg-nav-right">
 
@@ -416,11 +416,11 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
               </div>
             </div>
           ) : (
-            <div className="pg-card" onClick={e => e.stopPropagation()}>
+            <div className="pg-card" onClick={e => e.stopPropagation()} style={{ filter: (showFromList || showToList) ? "blur(3px)" : "none", transition: "filter 0.2s" }}>
               <div style={{ padding: "12px 4px 4px" }}>
                 {/* Header */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 12px" }}>
-                  <span style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: "#D4A017", letterSpacing: ".8px" }}>Swap</span>
+                  <span style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: "#0052FF", letterSpacing: ".8px" }}>Swap</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     {swapSource && <span style={{ fontSize: 11, color: "rgba(212,160,23,0.45)" }}>⚡ {swapSource}</span>}
                     <button className="pg-settings-btn" onClick={() => setShowSettings(!showSettings)}>⚙</button>
@@ -523,7 +523,7 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
           <div className="pg-modal" onClick={e => e.stopPropagation()}>
             <div style={{ padding: "18px 18px 14px", borderBottom: "1px solid rgba(212,160,23,0.08)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                <span style={{ fontFamily: "'Cinzel',serif", fontSize: 15, fontWeight: 600, color: "#D4A017" }}>Select a token</span>
+                <span style={{ fontFamily: "'Cinzel',serif", fontSize: 15, fontWeight: 600, color: "#0052FF" }}>Select a token</span>
                 <button onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.45)", fontSize: 14, cursor: "pointer" }}>✕</button>
               </div>
               <input autoFocus placeholder="🔍 Search token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}

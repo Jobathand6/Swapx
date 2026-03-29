@@ -255,7 +255,7 @@ const handleSwap = async () => {
 
       {/* Token modal */}
       {(showFromList || showToList) && (
-        <div onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.72)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(6px)" }}>
+        <div onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "rgba(10,7,2,0.98)", border: "1px solid rgba(153,69,255,0.2)", borderRadius: 24, width: "100%", maxWidth: 400, maxHeight: "75vh", display: "flex", flexDirection: "column" }}>
             <div style={{ padding: "18px 18px 14px", borderBottom: "1px solid rgba(153,69,255,0.1)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
