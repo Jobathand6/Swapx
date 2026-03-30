@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAppKitProvider, useAppKitConnection } from "@reown/appkit/react";
-import { useAppKitAccount, useAppKit } from "@reown/appkit/react";
+import { useAppKitProvider } from "@reown/appkit/react";
+import { useAppKitAccount, useAppKit, useAppKitConnection } from "@reown/appkit/react";
 
 import { Connection, VersionedTransaction } from "@solana/web3.js";
 
@@ -45,7 +45,7 @@ export default function SolanaSwap() {
   const [error,        setError]        = useState(null);
   const [txHash,       setTxHash]       = useState(null);
  const { walletProvider } = useAppKitProvider("solana");
-const connection = { rpcEndpoint: "/api/solana-rpc" };
+const connection = new Connection("https://mainnet.helius-rpc.com/?api-key=b82f7243-5b22-44ae-a3d4-d5869d9c5334", "confirmed");
 const publicKey = walletProvider?.publicKey || null;
 const sendTransaction = walletProvider?.sendTransaction?.bind(walletProvider) || null;
 const { isConnected: connected, address, caipAddress } = useAppKitAccount();
@@ -96,6 +96,7 @@ console.log("walletAddress:", walletAddress, "address:", address);
   };
 
   useEffect(() => {
+    console.log("useEffect triggered, fromAmount:", fromAmount);
     if (!fromAmount || isNaN(fromAmount) || Number(fromAmount) === 0) { setToAmount(""); setQuoteData(null); return; }
     const t = setTimeout(async () => {
       try {
@@ -104,7 +105,8 @@ console.log("walletAddress:", walletAddress, "address:", address);
         const params = new URLSearchParams({ type: "quote", inputMint: fromToken.mint, outputMint: toToken.mint, amount: amount.toString(), slippageBps: Math.floor(slippage * 100).toString() });
         const res = await fetch(`/api/solana?${params}`);
         const data = await res.json();
-        if (data.outAmount) {
+console.log("Jupiter response:", data);
+if (data.outAmount) {
           setToAmount((Number(data.outAmount) / Math.pow(10, toToken.decimals)).toFixed(6));
           setQuoteData(data);
         }

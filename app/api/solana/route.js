@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { createJupiterApiClient } from "@jup-ag/api";
+
+const jupiterApi = createJupiterApiClient();
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -8,44 +11,37 @@ export async function GET(request) {
     const inputMint = searchParams.get("inputMint");
     const outputMint = searchParams.get("outputMint");
     const amount = searchParams.get("amount");
-    const slippageBps = searchParams.get("slippageBps") || "50";
+    const slippageBps = parseInt(searchParams.get("slippageBps") || "50");
 
-    const res = await fetch(
-      `https://quote-api.jup.ag/v6/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippageBps}`
-    );
-    const data = await res.json();
-    return NextResponse.json(data);
+    try {
+      const quote = await jupiterApi.quoteGet({
+        inputMint,
+        outputMint,
+        amount: parseInt(amount),
+        slippageBps,
+      });
+      return NextResponse.json(quote);
+    } catch (e) {
+      return NextResponse.json({ error: e.message }, { status: 500 });
+    }
   }
 
-  if (type === "swap") {
-    const body = await request.json().catch(() => ({}));
-    const res = await fetch("https://quote-api.jup.ag/v6/swap", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    return NextResponse.json(data);
-  }
-
-  if (type === "tokens") {
-    const res = await fetch("https://token.jup.ag/strict");
-    const data = await res.json();
-    return NextResponse.json(data.slice(0, 50));
-  }
-
-  return NextResponse.json({ error: "Type invalide" }, { status: 400 });
+  return NextResponse.json({ error: "Invalid type" }, { status: 400 });
 }
 
 export async function POST(request) {
   const body = await request.json();
   
-  const res = await fetch("https://quote-api.jup.ag/v6/swap", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  
-  const data = await res.json();
-  return NextResponse.json(data);
+  try {
+    const swapResult = await jupiterApi.swapPost({
+      swapRequest: {
+        quoteResponse: body.quoteResponse,
+        userPublicKey: body.userPublicKey,
+        wrapAndUnwrapSol: body.wrapAndUnwrapSol ?? true,
+      }
+    });
+    return NextResponse.json(swapResult);
+  } catch (e) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
 }

@@ -414,18 +414,18 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
           </div>
 
           {/* Carte swap */}
-          {isSolana ? (
-            <div className="pg-card" onClick={e => e.stopPropagation()}>
-              <div style={{ padding: "12px 4px 4px" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 12px" }}>
-                  <span style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: "#9945FF", letterSpacing: ".8px" }}>Swap</span>
-                  <button className="pg-settings-btn" style={{ color: "rgba(153,69,255,0.38)" }}>⚙</button>
-                </div>
-
-                <SolanaSwap />
-              </div>
-            </div>
-          ) : (
+<div style={{ display: isSolana ? "block" : "none" }}>
+  <div className="pg-card" onClick={e => e.stopPropagation()}>
+    <div style={{ padding: "12px 4px 4px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 12px" }}>
+        <span style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: "#9945FF", letterSpacing: ".8px" }}>Swap</span>
+        <button className="pg-settings-btn" style={{ color: "rgba(153,69,255,0.38)" }}>⚙</button>
+      </div>
+      <SolanaSwap />
+    </div>
+  </div>
+</div>
+{!isSolana && (
             <div className="pg-card" onClick={e => e.stopPropagation()} style={{ filter: (showFromList || showToList) ? "blur(3px)" : "none", transition: "filter 0.2s" }}>
               <div style={{ padding: "12px 4px 4px" }}>
                 {/* Header */}
