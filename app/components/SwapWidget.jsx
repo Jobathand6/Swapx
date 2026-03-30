@@ -300,6 +300,16 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;} body{background:#060408;}
         .pg-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,160,23,0.1);height:64px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 24px;gap:16px;}
+.pg-nav-top-mobile{display:none;}
+.pg-nav-mobile{display:none;}
+@media(max-width:768px){
+  .pg-nav{display:none;}
+  .pg-nav-top-mobile{display:flex;position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,160,23,0.15);height:56px;align-items:center;justify-content:space-between;padding:0 16px;}
+  .pg-nav-mobile{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(212,160,23,0.15);height:64px;align-items:center;justify-content:space-around;padding:0 8px;}
+  .pg-nav-mobile-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;border-radius:12px;color:rgba(255,255,255,0.45);text-decoration:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;transition:all 0.2s;}
+  .pg-nav-mobile-item.active{color:#D4A017;}
+  .pg-nav-mobile-item span:first-child{font-size:20px;}
+}
         .pg-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
         .pg-logo-text{font-family:'Cinzel',serif;font-size:22px;font-weight:700;background:linear-gradient(135deg,#D4A017,#F5C842,#D4A017);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;}
         .pg-nav-links{display:flex;align-items:center;gap:4px;justify-content:center;}
@@ -548,7 +558,27 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
         </div>
       )}
 
+{/* Mobile top navbar */}
+<nav className="pg-nav-top-mobile">
+  <a href="/swap" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+    <img src="/logo.png" style={{ width: 32, height: 32, objectFit: "contain" }} alt="Pangeon" />
+    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
+  </a>
+  <appkit-button />
+</nav>
 
+{/* Mobile bottom navbar */}
+<nav className="pg-nav-mobile">
+  <a href="/swap" className="pg-nav-mobile-item active">
+    <span>⚡</span><span>Swap</span>
+  </a>
+  <a href="/dust" className="pg-nav-mobile-item">
+    <span>🧹</span><span>Sweep</span>
+  </a>
+  <a href="/profile" className="pg-nav-mobile-item">
+    <span>👤</span><span>Profile</span>
+  </a>
+</nav>
     </>
   );
 }

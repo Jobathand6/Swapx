@@ -58,6 +58,7 @@ export default function LandingPage() {
         .land-nav-link { color: rgba(255,255,255,0.5); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; text-decoration: none; cursor: pointer; transition: color 0.2s; background: none; border: none; }
         .land-nav-link:hover { color: #D4A017; }
         .launch-btn { padding: 10px 24px; border-radius: 12px; background: linear-gradient(135deg, #D4A017, #F5C842); border: none; color: #0a0600; font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+        @media(max-width:768px){ .launch-btn{ font-size:11px; padding:7px 14px; } }
         .launch-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(212,160,23,0.3); }
 
         .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; text-align: center; padding: 80px 20px 40px; }

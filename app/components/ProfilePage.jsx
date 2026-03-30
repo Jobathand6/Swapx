@@ -111,6 +111,18 @@ export default function ProfilePage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap');
         body { background: #060408; }
+        @media(max-width:768px){
+  .prof-grid{grid-template-columns:1fr !important;}
+}
+        .pg-nav-top-mobile{display:none;}
+.pg-nav-mobile{display:none;}
+@media(max-width:768px){
+  .pg-nav-top-mobile{display:flex !important;position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,160,23,0.15);height:56px;align-items:center;justify-content:space-between;padding:0 16px;}
+  .pg-nav-mobile{display:flex !important;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(212,160,23,0.15);height:64px;align-items:center;justify-content:space-around;padding:0 8px;}
+  .pg-nav-mobile-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;border-radius:12px;color:rgba(255,255,255,0.45);text-decoration:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;}
+  .pg-nav-mobile-item.active{color:#D4A017;}
+  .pg-nav-mobile-item span:first-child{font-size:20px;}
+}
         .prof-card { background: rgba(12,8,3,0.9); border: 1px solid rgba(212,160,23,0.15); border-radius: 24px; padding: 24px; backdrop-filter: blur(24px); }
         .prof-stat { background: rgba(20,14,6,0.9); border: 1px solid rgba(212,160,23,0.08); border-radius: 16px; padding: 16px 20px; flex: 1; text-align: center; }
         .prof-level-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; border: 1px solid; margin-bottom: 8px; }
@@ -143,12 +155,32 @@ export default function ProfilePage() {
           <appkit-button />
         </div>
       </nav>
+{/* Mobile top navbar */}
+<nav style={{ display: "none" }} className="pg-nav-top-mobile">
+  <a href="/swap" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+    <img src="/logo.png" style={{ width: 32, height: 32, objectFit: "contain" }} alt="Pangeon" />
+    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
+  </a>
+  <appkit-button />
+</nav>
 
+{/* Mobile bottom navbar */}
+<nav style={{ display: "none" }} className="pg-nav-mobile">
+  <a href="/swap" className="pg-nav-mobile-item">
+    <span>⚡</span><span>Swap</span>
+  </a>
+  <a href="/dust" className="pg-nav-mobile-item">
+    <span>🧹</span><span>Sweep</span>
+  </a>
+  <a href="/profile" className="pg-nav-mobile-item active">
+    <span>👤</span><span>Profile</span>
+  </a>
+</nav>
       {/* Contenu */}
       <div style={{ position: "relative", zIndex: 1, paddingTop: 90, paddingBottom: 60, maxWidth: 1100, margin: "0 auto", padding: "130px 24px 60px" }}>
 
         {/* Layout 2 colonnes */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }} className="prof-grid">
 
           {/* Colonne gauche */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

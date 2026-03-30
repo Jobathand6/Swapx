@@ -167,6 +167,17 @@ export default function DustSweeper() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap');
         @keyframes pg-pulse { 0%,100%{opacity:0.08} 50%{opacity:0.18} }
+        .pg-nav-top-mobile{display:none;}
+        .pg-nav-mobile{display:none;}
+        @media(max-width:768px){
+          .dust-coming-soon{display:none;}
+          .dust-settings-grid{grid-template-columns:1fr !important;}
+  .pg-nav-top-mobile{display:flex !important;position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,160,23,0.15);height:56px;align-items:center;justify-content:space-between;padding:0 16px;}
+  .pg-nav-mobile{display:flex !important;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(212,160,23,0.15);height:64px;align-items:center;justify-content:space-around;padding:0 8px;}
+  .pg-nav-mobile-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;border-radius:12px;color:rgba(255,255,255,0.45);text-decoration:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;}
+  .pg-nav-mobile-item.active{color:#D4A017;}
+  .pg-nav-mobile-item span:first-child{font-size:20px;}
+}
         .dust-card { background: rgba(12,8,3,0.9); border: 1px solid rgba(212,160,23,0.15); border-radius: 24px; padding: 20px 24px; backdrop-filter: blur(24px); }
         .dust-label { font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 10px; }
         .chain-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.5); font-family: 'DM Sans',sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
@@ -208,7 +219,27 @@ export default function DustSweeper() {
           <appkit-button />
         </div>
       </nav>
+{/* Mobile top navbar */}
+<nav style={{ display: "none" }} className="pg-nav-top-mobile">
+  <a href="/swap" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+    <img src="/logo.png" style={{ width: 32, height: 32, objectFit: "contain" }} alt="Pangeon" />
+    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
+  </a>
+  <appkit-button />
+</nav>
 
+{/* Mobile bottom navbar */}
+<nav style={{ display: "none" }} className="pg-nav-mobile">
+  <a href="/swap" className="pg-nav-mobile-item">
+    <span>⚡</span><span>Swap</span>
+  </a>
+  <a href="/dust" className="pg-nav-mobile-item active">
+    <span>🧹</span><span>Sweep</span>
+  </a>
+  <a href="/profile" className="pg-nav-mobile-item">
+    <span>👤</span><span>Profile</span>
+  </a>
+</nav>
       {/* Page content */}
       <div style={{ position: "relative", zIndex: 1, paddingTop: 120, paddingBottom: 60, maxWidth: 860, margin: "0 auto", padding: "120px 24px 60px" }}>
 
@@ -227,7 +258,7 @@ export default function DustSweeper() {
           
           {/* Available chains */}
           <div className="dust-label">Select chain</div>
-          <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap", justifyContent: "center" }}>
             {CHAINS_CONFIG.filter(c => c.available).map(c => (
               <button key={c.id}
                 className={`chain-btn ${selectedChain.id === c.id ? "active" : ""} ${c.comingSoon ? "disabled" : ""}`}
@@ -240,8 +271,8 @@ export default function DustSweeper() {
             ))}
           </div>
 
-          {/* Coming soon chains */}
-          <div style={{ borderTop: "1px solid rgba(212,160,23,0.08)", paddingTop: 16 }}>
+{/* Coming soon chains */}
+          <div style={{ borderTop: "1px solid rgba(212,160,23,0.08)", paddingTop: 16 }} className="dust-coming-soon">
             <div className="dust-label">Chain coming soon</div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               {CHAINS_CONFIG.filter(c => !c.available).map(c => (
@@ -256,7 +287,7 @@ export default function DustSweeper() {
         </div>
 
         {/* Threshold + Convert to */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }} className="dust-settings-grid">
           <div className="dust-card">
             <div className="dust-label">Threshold (max value in $)</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
