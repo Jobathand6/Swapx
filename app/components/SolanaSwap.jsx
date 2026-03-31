@@ -57,6 +57,8 @@ console.log("walletAddress:", walletAddress, "address:", address);
   const [slippage,     setSlippage]     = useState(0.5);
   const [quoteData,    setQuoteData]    = useState(null);
   const [searchQuery,  setSearchQuery]  = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+const [searching, setSearching] = useState(false);
   const [solBalances,  setSolBalances]  = useState({});
 
 
@@ -145,8 +147,9 @@ const handleSwap = async () => {
     setFromAmount(toAmount); setToAmount(fromAmount);
   };
 
-  const filteredFrom = POPULAR_TOKENS.filter(t => t.symbol !== toToken.symbol && (t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || t.name.toLowerCase().includes(searchQuery.toLowerCase())));
-  const filteredTo   = POPULAR_TOKENS.filter(t => t.symbol !== fromToken.symbol && (t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || t.name.toLowerCase().includes(searchQuery.toLowerCase())));
+const baseList = searchResults.length > 0 ? searchResults : POPULAR_TOKENS;
+const filteredFrom = baseList.filter(t => t.symbol && t.mint && t.symbol !== toToken.symbol);
+const filteredTo   = baseList.filter(t => t.symbol && t.mint && t.symbol !== fromToken.symbol);
 
   return (
     <div style={{ width: "100%", fontFamily: "'DM Sans', sans-serif" }}>
@@ -264,12 +267,27 @@ const handleSwap = async () => {
                 <span style={{ fontFamily: "'Cinzel', serif", fontSize: 15, fontWeight: 600, color: "#9945FF" }}>Select a token</span>
                 <button onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.45)", fontSize: 14, cursor: "pointer" }}>✕</button>
               </div>
-              <input autoFocus placeholder="🔍 Search token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+<input autoFocus placeholder="🔍 Search token or paste address..." value={searchQuery} onChange={e => {
+  const q = e.target.value;
+  setSearchQuery(q);
+  if (q.length >= 2) {
+    setSearching(true);
+    fetch(`/api/solana?type=search&q=${encodeURIComponent(q)}`)
+      .then(r => r.json())
+      .then(results => {
+        setSearchResults(Array.isArray(results) ? results : []);
+        setSearching(false);
+      })
+      .catch(() => { setSearchResults([]); setSearching(false); });
+  } else {
+    setSearchResults([]);
+  }
+}}
                 style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(153,69,255,0.15)", background: "rgba(153,69,255,0.04)", color: "#fff", fontFamily: "'DM Sans', sans-serif", fontSize: 13, outline: "none" }} />
             </div>
             <div style={{ overflowY: "auto", padding: "8px 10px", scrollbarWidth: "thin", scrollbarColor: "rgba(153,69,255,0.2) transparent" }}>
               {(showFromList ? filteredFrom : filteredTo).map(t => (
-                <button key={t.mint} className="sol-tok-item" onClick={() => { showFromList ? setFromToken(t) : setToToken(t); setShowFromList(false); setShowToList(false); setSearchQuery(""); }}>
+                <button key={t.mint + t.symbol} className="sol-tok-item" onClick={() => { showFromList ? setFromToken(t) : setToToken(t); setShowFromList(false); setShowToList(false); setSearchQuery(""); }}>
                   <TokenLogo src={t.logo} size={38} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: 14 }}>{t.symbol}</div>
