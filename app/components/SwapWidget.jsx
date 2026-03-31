@@ -143,6 +143,7 @@ const { switchChain } = useSwitchChain();
   const [showFromList, setShowFromList] = useState(false);
   const [showToList,   setShowToList]   = useState(false);
   const [searchQuery,  setSearchQuery]  = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState(null);
   const [txHash,       setTxHash]       = useState(null);
@@ -287,8 +288,9 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
     setLoading(false); setFromAmount(""); setToAmount("");
   };
 
-  const filteredFrom = BASE_TOKENS.filter(t => t.symbol !== toToken?.symbol && (t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || t.name.toLowerCase().includes(searchQuery.toLowerCase())));
-  const filteredTo   = BASE_TOKENS.filter(t => t.symbol !== fromToken?.symbol && (t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || t.name.toLowerCase().includes(searchQuery.toLowerCase())));
+const baseList = searchResults.length > 0 ? searchResults : BASE_TOKENS;
+const filteredFrom = baseList.filter(t => t.symbol && t.address && t.symbol !== toToken?.symbol);
+const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== fromToken?.symbol);
 
   const currentLevel = getLevel(swapCount);
   const progress     = getProgress(swapCount);
@@ -536,7 +538,18 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
                 <span style={{ fontFamily: "'Cinzel',serif", fontSize: 15, fontWeight: 600, color: "#0052FF" }}>Select a token</span>
                 <button onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); }} style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.45)", fontSize: 14, cursor: "pointer" }}>✕</button>
               </div>
-              <input autoFocus placeholder="🔍 Search token..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              <input autoFocus placeholder="🔍 Search token or paste address..." value={searchQuery} onChange={e => {
+  const q = e.target.value;
+  setSearchQuery(q);
+  if (q.length >= 2) {
+    fetch(`/api/solana?type=search-base&q=${encodeURIComponent(q)}`)
+      .then(r => r.json())
+      .then(results => setSearchResults(Array.isArray(results) ? results : []))
+      .catch(() => setSearchResults([]));
+  } else {
+    setSearchResults([]);
+  }
+}}
                 style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(212,160,23,0.12)", background: "rgba(212,160,23,0.04)", color: "#fff", fontFamily: "'DM Sans',sans-serif", fontSize: 13, outline: "none" }} />
             </div>
             <div className="pg-modal-list">

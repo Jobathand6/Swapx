@@ -53,6 +53,34 @@ if (type === "search") {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+if (type === "search-base") {
+  const query = searchParams.get("q") || "";
+  try {
+    const res = await fetch(
+      `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(query)}`
+    );
+    const data = await res.json();
+    const seen = new Set();
+    const results = (data.pairs || [])
+      .filter(p => p.chainId === "base")
+      .map(p => ({
+        symbol: p.baseToken.symbol,
+        name: p.baseToken.name,
+        address: p.baseToken.address,
+        logo: p.info?.imageUrl || "",
+        decimals: 18,
+      }))
+      .filter(t => {
+        if (seen.has(t.address)) return false;
+        seen.add(t.address);
+        return true;
+      })
+      .slice(0, 20);
+    return NextResponse.json(results);
+  } catch (e) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
   return NextResponse.json({ error: "Invalid type" }, { status: 400 });
 }
 
