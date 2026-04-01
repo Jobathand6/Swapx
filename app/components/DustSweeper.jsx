@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { useAccount } from "wagmi";
+import { Connection, VersionedTransaction } from "@solana/web3.js";
+
+const HELIUS_RPC = "https://mainnet.helius-rpc.com/?api-key=b82f7243-5b22-44ae-a3d4-d5869d9c5334";
+const SOL_MINT = "So11111111111111111111111111111111111111112";
 
 const CHAINS_CONFIG = [
   { id: "0x2105", name: "Base",      symbol: "ETH",  color: "#0052FF", moralisId: "0x2105", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg", available: true },
-  { id: "solana", name: "Solana",    symbol: "SOL",  color: "#9945FF", moralisId: null,     logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png", available: true, comingSoon: true },
+  { id: "solana", name: "Solana",    symbol: "SOL",  color: "#9945FF", moralisId: null,     logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png", available: true },
   { id: "0x1",    name: "Ethereum",  symbol: "ETH",  color: "#627EEA", moralisId: "0x1",    logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png", available: false },
   { id: "0x38",   name: "BNB Chain", symbol: "BNB",  color: "#F3BA2F", moralisId: "0x38",   logo: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png", available: false },
   { id: "0x89",   name: "Polygon",   symbol: "MATIC",color: "#8247E5", moralisId: "0x89",   logo: "https://assets.coingecko.com/coins/images/4713/small/polygon.png", available: false },
@@ -20,7 +25,7 @@ const OO_CHAIN_NAMES = {
 };
 
 const RECEIVE_TOKENS = {
-  "0x2105": { symbol: "ETH",  address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" },
+  "0x2105": { symbol: "ETH", address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" },
 };
 
 const STARS = Array.from({ length: 36 }, (_, i) => ({
@@ -30,7 +35,6 @@ const STARS = Array.from({ length: 36 }, (_, i) => ({
 
 function TokenImg({ src, size = 28 }) {
   const [s, setS] = useState(src);
-  useEffect(() => { setS(src); }, [src]);
   return (
     <img src={s} width={size} height={size}
       style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0, background: "#333" }}
@@ -40,7 +44,9 @@ function TokenImg({ src, size = 28 }) {
 }
 
 export default function DustSweeper() {
-  const { address: account } = useAppKitAccount();
+  const { address: solanaAccount } = useAppKitAccount();
+const { address: evmAccount } = useAccount();
+const { address: reownAddress } = useAppKitAccount();
   const [selectedChain, setSelectedChain] = useState(CHAINS_CONFIG[0]);
   const [threshold, setThreshold] = useState(5);
   const [customThreshold, setCustomThreshold] = useState("");
@@ -54,64 +60,97 @@ export default function DustSweeper() {
   const [receiveToken, setReceiveToken] = useState("native");
 
   const effectiveThreshold = customThreshold ? Number(customThreshold) : threshold;
+  const isSolana = selectedChain.id === "solana";
+  const account = isSolana ? solanaAccount : (evmAccount || solanaAccount);
 
+  // ─── SCAN ────────────────────────────────────────────────
   const handleScan = async () => {
-    if (!account) { setError("Connect your wallet first"); return; }
-    if (selectedChain.comingSoon) { setError("Solana Dust Sweeper coming soon!"); return; }
+    if (!account) { setError(isSolana ? "Connect a Solana wallet (Phantom)" : "Connect an EVM wallet (MetaMask)"); return; }
     setLoading(true); setError(null); setTokens([]); setSelectedTokens([]); setScanned(false);
+    console.log("Scanning with account:", account, "evmAccount:", evmAccount, "solanaAccount:", solanaAccount);
+
     try {
-      const res = await fetch(
-        `https://deep-index.moralis.io/api/v2.2/${account}/erc20?chain=${selectedChain.moralisId}&limit=500`,
-        { headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "", "Accept": "application/json" } }
-      );
-      const data = await res.json();
-      if (!data.result || data.result.length === 0) { setTokens([]); setScanned(true); setLoading(false); return; }
+      if (isSolana) {
+        // Scan Solana SPL tokens
+        const res = await fetch(HELIUS_RPC, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0", id: 1,
+            method: "getTokenAccountsByOwner",
+            params: [account, { programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" }, { encoding: "jsonParsed" }]
+          }),
+        });
+        const data = await res.json();
+        const splTokens = (data.result?.value || []).filter(acc => Number(acc.account.data.parsed.info.tokenAmount.uiAmount) > 0);
 
-      const chainName = OO_CHAIN_NAMES[selectedChain.id] || "base";
-      const addresses = data.result.map(t => t.token_address).slice(0, 30).join(",");
-      let priceMap = {};
-      try {
-        const dexRes = await fetch(`https://api.dexscreener.com/tokens/v1/${chainName}/${addresses}`);
-        const dexData = await dexRes.json();
-        if (Array.isArray(dexData)) {
-          dexData.forEach(pair => {
-            if (pair.baseToken?.address && pair.priceUsd) {
-              priceMap[pair.baseToken.address.toLowerCase()] = Number(pair.priceUsd);
+        const tokensWithPrice = await Promise.all(splTokens.map(async acc => {
+          const info = acc.account.data.parsed.info;
+          const mint = info.mint;
+          const balance = Number(info.tokenAmount.uiAmount);
+          let priceUsd = 0, symbol = mint.slice(0, 6) + "...", name = "Unknown", logo = "";
+          try {
+            const dexRes = await fetch(`https://api.dexscreener.com/tokens/v1/solana/${mint}`);
+            const dexData = await dexRes.json();
+            if (Array.isArray(dexData) && dexData.length > 0) {
+              const pair = dexData[0];
+              priceUsd = Number(pair.priceUsd) || 0;
+              symbol = pair.baseToken?.symbol || symbol;
+              name = pair.baseToken?.name || name;
+              logo = pair.info?.imageUrl || "";
             }
-          });
-        }
-      } catch { }
+          } catch { }
+          return { address: mint, symbol, name, logo, balance: balance.toFixed(6), priceUsd, valueUsd: balance * priceUsd, decimals: info.tokenAmount.decimals, isSolana: true };
+        }));
 
-      const tokensWithPrice = await Promise.all(
-        data.result.map(async (token) => {
+        const dust = tokensWithPrice.filter(t => t.valueUsd > 0 && t.valueUsd <= effectiveThreshold);
+        setTokens(dust);
+        setSelectedTokens(dust.map(t => t.address));
+
+      } else {
+        // Scan EVM tokens
+        const res = await fetch(
+          `https://deep-index.moralis.io/api/v2.2/${account}/erc20?chain=${selectedChain.moralisId}&limit=500`,
+          { headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "", "Accept": "application/json" } }
+        );
+        const data = await res.json();
+        if (!data.result || data.result.length === 0) { setTokens([]); setScanned(true); setLoading(false); return; }
+
+        const chainName = OO_CHAIN_NAMES[selectedChain.id] || "base";
+        const addresses = data.result.map(t => t.token_address).slice(0, 30).join(",");
+        let priceMap = {};
+        try {
+          const dexRes = await fetch(`https://api.dexscreener.com/tokens/v1/${chainName}/${addresses}`);
+          const dexData = await dexRes.json();
+          if (Array.isArray(dexData)) {
+            dexData.forEach(pair => {
+              if (pair.baseToken?.address && pair.priceUsd) priceMap[pair.baseToken.address.toLowerCase()] = Number(pair.priceUsd);
+            });
+          }
+        } catch { }
+
+        const tokensWithPrice = await Promise.all(data.result.map(async token => {
           const balance = Number(token.balance) / Math.pow(10, token.decimals);
           let priceUsd = priceMap[token.token_address.toLowerCase()] || 0;
           if (!priceUsd) {
             try {
-              const priceRes = await fetch(
-                `https://deep-index.moralis.io/api/v2.2/erc20/${token.token_address}/price?chain=${selectedChain.moralisId}`,
-                { headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" } }
-              );
+              const priceRes = await fetch(`https://deep-index.moralis.io/api/v2.2/erc20/${token.token_address}/price?chain=${selectedChain.moralisId}`, { headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" } });
               const priceData = await priceRes.json();
               priceUsd = priceData.usdPrice || 0;
-            } catch { priceUsd = 0; }
+            } catch { }
           }
           return {
-            address: token.token_address,
-            symbol: token.symbol,
-            name: token.name,
+            address: token.token_address, symbol: token.symbol, name: token.name,
             logo: token.logo || token.thumbnail || `https://dd.dexscreener.com/ds-data/tokens/${chainName}/${token.token_address}.png`,
-            balance: balance.toFixed(6),
-            priceUsd,
-            valueUsd: balance * priceUsd,
-            decimals: token.decimals,
+            balance: balance.toFixed(6), priceUsd, valueUsd: balance * priceUsd, decimals: token.decimals,
           };
-        })
-      );
+        }));
 
-      const dustTokens = tokensWithPrice.filter(t => t.valueUsd > 0 && t.valueUsd <= effectiveThreshold);
-      setTokens(dustTokens);
-      setSelectedTokens(dustTokens.map(t => t.address));
+        const dust = tokensWithPrice.filter(t => t.valueUsd > 0 && t.valueUsd <= effectiveThreshold);
+        setTokens(dust);
+        setSelectedTokens(dust.map(t => t.address));
+      }
+
       setScanned(true);
     } catch (e) {
       setError("Error: " + (e.message || "unknown"));
@@ -119,41 +158,73 @@ export default function DustSweeper() {
     setLoading(false);
   };
 
+  // ─── SWEEP ───────────────────────────────────────────────
   const handleSweep = async () => {
     if (!account) return;
     if (selectedTokens.length === 0) { setError("Please select at least one token."); return; }
     setSweeping(true); setError(null);
-    const { sendSwapTransaction, approveToken } = await import("../lib/sendSwapTx");
-    const chainIdNum = parseInt(selectedChain.id, 16);
-    const receiveAddr = RECEIVE_TOKENS[selectedChain.id]?.address;
-    let sweptCount = 0;
-    let totalReceived = 0;
-    for (const token of tokens.filter(t => selectedTokens.includes(t.address))) {
-      try {
-        const amountReadable = token.balance;
-        const src = token.address;
-        const dest = receiveAddr;
+    let sweptCount = 0, totalReceived = 0;
+
+    if (isSolana) {
+      const connection = new Connection(HELIUS_RPC, "confirmed");
+      for (const token of tokens.filter(t => selectedTokens.includes(t.address))) {
         try {
-          const approveRes = await fetch(`/api/openocean?type=quote&chainId=${chainIdNum}&inTokenAddress=${src}&outTokenAddress=${dest}&amount=${amountReadable}&slippage=3&account=${account}`);
-          const approveData = await approveRes.json();
-          if (approveData?.data?.to) {
-            await approveToken({ chainId: chainIdNum, tokenAddress: token.address, spenderAddress: approveData.data.to });
-            await new Promise(r => setTimeout(r, 2000));
-          }
-        } catch { }
-        const params = new URLSearchParams({ type: "quote", chainId: chainIdNum.toString(), inTokenAddress: src, outTokenAddress: dest, amount: amountReadable, slippage: "3", account });
-        const res = await fetch(`/api/openocean?${params}`);
-        const data = await res.json();
-        if (data?.data?.to) {
-          await sendSwapTransaction({ chainId: chainIdNum, to: data.data.to, data: data.data.data, value: data.data.value || "0", gas: data.data.estimatedGas });
+          const amount = Math.floor(Number(token.balance) * Math.pow(10, token.decimals));
+          const quoteRes = await fetch(`/api/solana?type=quote&inputMint=${token.address}&outputMint=${SOL_MINT}&amount=${amount}&slippageBps=300`);
+          const quote = await quoteRes.json();
+          if (!quote.outAmount) continue;
+
+          const swapRes = await fetch("/api/solana", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true }),
+          });
+          const swapData = await swapRes.json();
+          if (!swapData.swapTransaction) continue;
+
+          const transaction = VersionedTransaction.deserialize(Buffer.from(swapData.swapTransaction, "base64"));
+          let signedTx;
+          if (window?.phantom?.solana) signedTx = await window.phantom.solana.signTransaction(transaction);
+          else if (window?.solflare) signedTx = await window.solflare.signTransaction(transaction);
+          else throw new Error("No Solana wallet found");
+
+          const txid = await connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: true, maxRetries: 3 });
+          await connection.confirmTransaction(txid, "confirmed");
           sweptCount++;
           totalReceived += token.valueUsd * 0.97;
-        }
-      } catch (e) { console.error(`Error swap ${token.symbol}:`, e); }
+        } catch (e) { console.error(`Error sweep ${token.symbol}:`, e); }
+      }
+    } else {
+      const { sendSwapTransaction, approveToken } = await import("../lib/sendSwapTx");
+      const chainIdNum = parseInt(selectedChain.id, 16);
+      const receiveAddr = RECEIVE_TOKENS[selectedChain.id]?.address;
+
+      for (const token of tokens.filter(t => selectedTokens.includes(t.address))) {
+        try {
+          const src = token.address, dest = receiveAddr, amountReadable = token.balance;
+          try {
+            const approveRes = await fetch(`/api/openocean?type=quote&chainId=${chainIdNum}&inTokenAddress=${src}&outTokenAddress=${dest}&amount=${amountReadable}&slippage=3&account=${account}`);
+            const approveData = await approveRes.json();
+            if (approveData?.data?.to) {
+              await approveToken({ chainId: chainIdNum, tokenAddress: token.address, spenderAddress: approveData.data.to });
+              await new Promise(r => setTimeout(r, 2000));
+            }
+          } catch { }
+          const params = new URLSearchParams({ type: "quote", chainId: chainIdNum.toString(), inTokenAddress: src, outTokenAddress: dest, amount: amountReadable, slippage: "3", account });
+          const res = await fetch(`/api/openocean?${params}`);
+          const data = await res.json();
+          if (data?.data?.to) {
+            await sendSwapTransaction({ chainId: chainIdNum, to: data.data.to, data: data.data.data, value: data.data.value || "0", gas: data.data.estimatedGas });
+            sweptCount++;
+            totalReceived += token.valueUsd * 0.97;
+          }
+        } catch (e) { console.error(`Error swap ${token.symbol}:`, e); }
+      }
     }
+
     setSweeping(false);
     if (sweptCount > 0) {
-      setSweptResult({ count: sweptCount, value: totalReceived.toFixed(2), receivedToken: RECEIVE_TOKENS[selectedChain.id]?.symbol });
+      setSweptResult({ count: sweptCount, value: totalReceived.toFixed(2), receivedToken: isSolana ? "SOL" : RECEIVE_TOKENS[selectedChain.id]?.symbol });
     } else {
       setError("Sweep failed. Please try again.");
     }
@@ -167,17 +238,6 @@ export default function DustSweeper() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap');
         @keyframes pg-pulse { 0%,100%{opacity:0.08} 50%{opacity:0.18} }
-        .pg-nav-top-mobile{display:none;}
-        .pg-nav-mobile{display:none;}
-        @media(max-width:768px){
-          .dust-coming-soon{display:none;}
-          .dust-settings-grid{grid-template-columns:1fr !important;}
-  .pg-nav-top-mobile{display:flex !important;position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,160,23,0.15);height:56px;align-items:center;justify-content:space-between;padding:0 16px;}
-  .pg-nav-mobile{display:flex !important;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(212,160,23,0.15);height:64px;align-items:center;justify-content:space-around;padding:0 8px;}
-  .pg-nav-mobile-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;border-radius:12px;color:rgba(255,255,255,0.45);text-decoration:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;}
-  .pg-nav-mobile-item.active{color:#D4A017;}
-  .pg-nav-mobile-item span:first-child{font-size:20px;}
-}
         .dust-card { background: rgba(12,8,3,0.9); border: 1px solid rgba(212,160,23,0.15); border-radius: 24px; padding: 20px 24px; backdrop-filter: blur(24px); }
         .dust-label { font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 10px; }
         .chain-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.5); font-family: 'DM Sans',sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
@@ -193,6 +253,17 @@ export default function DustSweeper() {
         .token-row:last-child { border-bottom: none; }
         .sweep-btn { width: 100%; padding: 16px; border-radius: 16px; border: none; background: linear-gradient(135deg,#D4A017,#F5C842); color: #0a0600; font-family: 'Cinzel',serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 16px; }
         .sweep-btn:disabled { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.2); cursor: not-allowed; }
+        .pg-nav-top-mobile{display:none;}
+        .pg-nav-mobile{display:none;}
+        @media(max-width:768px){
+          .dust-coming-soon{display:none;}
+          .dust-settings-grid{grid-template-columns:1fr !important;}
+          .pg-nav-top-mobile{display:flex !important;position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,160,23,0.15);height:56px;align-items:center;justify-content:space-between;padding:0 16px;}
+          .pg-nav-mobile{display:flex !important;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:rgba(6,4,8,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(212,160,23,0.15);height:64px;align-items:center;justify-content:space-around;padding:0 8px;}
+          .pg-nav-mobile-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;border-radius:12px;color:rgba(255,255,255,0.45);text-decoration:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;}
+          .pg-nav-mobile-item.active{color:#D4A017;}
+          .pg-nav-mobile-item span:first-child{font-size:20px;}
+        }
       `}</style>
 
       {/* Background */}
@@ -204,14 +275,14 @@ export default function DustSweeper() {
         <div style={{ position: "absolute", bottom: 0, right: "5%", width: 0, height: 0, borderLeft: "160px solid transparent", borderRight: "160px solid transparent", borderBottom: "330px solid #120800" }} />
       </div>
 
-      {/* Navbar */}
+      {/* Navbar desktop */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(6,4,8,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(212,160,23,0.1)", height: 64, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", padding: "0 24px", gap: 16 }}>
         <a href="/swap" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
           <img src="/logo.png" style={{ width: 40, height: 40, objectFit: "contain" }} alt="Pangeon" />
           <span style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842,#D4A017)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-<a href="/swap"    style={{ padding: "8px 16px", borderRadius: 12, color: "#ffffff", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>⚡ Swap</a>
+          <a href="/swap"    style={{ padding: "8px 16px", borderRadius: 12, color: "#ffffff", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>⚡ Swap</a>
           <a href="/dust"    style={{ padding: "8px 16px", borderRadius: 12, color: "#D4A017", background: "rgba(212,160,23,0.08)", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>🧹 Sweep</a>
           <a href="/profile" style={{ padding: "8px 16px", borderRadius: 12, color: "#ffffff", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>👤 Profile</a>
         </div>
@@ -219,27 +290,23 @@ export default function DustSweeper() {
           <appkit-button />
         </div>
       </nav>
-{/* Mobile top navbar */}
-<nav style={{ display: "none" }} className="pg-nav-top-mobile">
-  <a href="/swap" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-    <img src="/logo.png" style={{ width: 32, height: 32, objectFit: "contain" }} alt="Pangeon" />
-    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
-  </a>
-  <appkit-button />
-</nav>
 
-{/* Mobile bottom navbar */}
-<nav style={{ display: "none" }} className="pg-nav-mobile">
-  <a href="/swap" className="pg-nav-mobile-item">
-    <span>⚡</span><span>Swap</span>
-  </a>
-  <a href="/dust" className="pg-nav-mobile-item active">
-    <span>🧹</span><span>Sweep</span>
-  </a>
-  <a href="/profile" className="pg-nav-mobile-item">
-    <span>👤</span><span>Profile</span>
-  </a>
-</nav>
+      {/* Mobile top navbar */}
+      <nav style={{ display: "none" }} className="pg-nav-top-mobile">
+        <a href="/swap" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+          <img src="/logo.png" style={{ width: 32, height: 32, objectFit: "contain" }} alt="Pangeon" />
+          <span style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
+        </a>
+        <appkit-button />
+      </nav>
+
+      {/* Mobile bottom navbar */}
+      <nav style={{ display: "none" }} className="pg-nav-mobile">
+        <a href="/swap" className="pg-nav-mobile-item"><span>⚡</span><span>Swap</span></a>
+        <a href="/dust" className="pg-nav-mobile-item active"><span>🧹</span><span>Sweep</span></a>
+        <a href="/profile" className="pg-nav-mobile-item"><span>👤</span><span>Profile</span></a>
+      </nav>
+
       {/* Page content */}
       <div style={{ position: "relative", zIndex: 1, paddingTop: 120, paddingBottom: 60, maxWidth: 860, margin: "0 auto", padding: "120px 24px 60px" }}>
 
@@ -255,23 +322,19 @@ export default function DustSweeper() {
 
         {/* Chain selection */}
         <div className="dust-card" style={{ marginBottom: 16 }}>
-          
-          {/* Available chains */}
           <div className="dust-label">Select chain</div>
           <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap", justifyContent: "center" }}>
             {CHAINS_CONFIG.filter(c => c.available).map(c => (
               <button key={c.id}
-                className={`chain-btn ${selectedChain.id === c.id ? "active" : ""} ${c.comingSoon ? "disabled" : ""}`}
-                onClick={() => { if (!c.comingSoon) { setSelectedChain(c); setTokens([]); setScanned(false); } }}
+                className={`chain-btn ${selectedChain.id === c.id ? "active" : ""}`}
+                onClick={() => { setSelectedChain(c); setTokens([]); setScanned(false); setSweptResult(null); }}
               >
                 <TokenImg src={c.logo} size={18} />
                 {c.name}
-                {c.comingSoon && <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 20, background: "rgba(153,69,255,0.15)", color: "#9945FF", border: "1px solid rgba(153,69,255,0.3)", fontWeight: 600 }}>Soon</span>}
               </button>
             ))}
           </div>
 
-{/* Coming soon chains */}
           <div style={{ borderTop: "1px solid rgba(212,160,23,0.08)", paddingTop: 16 }} className="dust-coming-soon">
             <div className="dust-label">Chain coming soon</div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -304,17 +367,23 @@ export default function DustSweeper() {
           <div className="dust-card">
             <div className="dust-label">Convert to</div>
             <div style={{ display: "flex", gap: 6 }}>
-              <button className={`thresh-btn ${receiveToken === "native" ? "active" : ""}`} onClick={() => setReceiveToken("native")}>
-                {RECEIVE_TOKENS[selectedChain.id]?.symbol || "Native"}
-              </button>
-              <button className={`thresh-btn ${receiveToken === "usdc" ? "active" : ""}`} onClick={() => setReceiveToken("usdc")}>USDC</button>
+              {isSolana ? (
+                <button className="thresh-btn active">SOL</button>
+              ) : (
+                <>
+                  <button className={`thresh-btn ${receiveToken === "native" ? "active" : ""}`} onClick={() => setReceiveToken("native")}>
+                    {RECEIVE_TOKENS[selectedChain.id]?.symbol || "Native"}
+                  </button>
+                  
+                </>
+              )}
             </div>
           </div>
         </div>
 
         {/* Scan button */}
-        <button className="scan-btn" onClick={handleScan} disabled={loading || !account || selectedChain.comingSoon} style={{ marginBottom: 16 }}>
-          {loading ? "⟳ Scanning..." : selectedChain.comingSoon ? `${selectedChain.name} — Coming Soon` : `Scan on ${selectedChain.name}`}
+        <button className="scan-btn" onClick={handleScan} disabled={loading || !account || (isSolana && !solanaAccount)} style={{ marginBottom: 16 }}>
+          {loading ? "⟳ Scanning..." : (isSolana && !solanaAccount) ? "Available on Phantom / Solflare only" : `Scan on ${selectedChain.name}`}
         </button>
 
         {error && <div style={{ margin: "12px 0", padding: "12px 16px", borderRadius: 14, background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.2)", color: "#ff6b6b", fontSize: 13 }}>{error}</div>}
@@ -333,8 +402,8 @@ export default function DustSweeper() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                   <div style={{ fontFamily: "'Cinzel',serif", color: "#D4A017", fontSize: 15, fontWeight: 600 }}>{tokens.length} dust token(s) found</div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => setSelectedTokens(tokens.map(t => t.address))} style={{ padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(212,160,23,0.2)", background: "transparent", color: "#D4A017", fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>All</button>
-                    <button onClick={() => setSelectedTokens([])} style={{ padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.4)", fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>None</button>
+                    <button onClick={() => setSelectedTokens(tokens.map(t => t.address))} style={{ padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(212,160,23,0.2)", background: "transparent", color: "#D4A017", fontSize: 12, cursor: "pointer" }}>All</button>
+                    <button onClick={() => setSelectedTokens([])} style={{ padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.4)", fontSize: 12, cursor: "pointer" }}>None</button>
                   </div>
                 </div>
                 {tokens.map(t => (
@@ -363,12 +432,12 @@ export default function DustSweeper() {
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600, borderTop: "1px solid rgba(212,160,23,0.1)", paddingTop: 8, marginTop: 4 }}>
                       <span style={{ color: "rgba(255,255,255,0.6)" }}>You will receive ≈</span>
-                      <span style={{ color: "#D4A017" }}>${estimatedReceive.toFixed(2)} in {receiveToken === "native" ? RECEIVE_TOKENS[selectedChain.id]?.symbol : "USDC"}</span>
+                      <span style={{ color: "#D4A017" }}>${estimatedReceive.toFixed(2)} in {isSolana ? "SOL" : (receiveToken === "native" ? RECEIVE_TOKENS[selectedChain.id]?.symbol : "USDC")}</span>
                     </div>
                   </div>
                 )}
                 <button className="sweep-btn" onClick={handleSweep} disabled={sweeping || selectedTokens.length === 0}>
-                  {sweeping ? "⟳ Sweeping..." : `🧹 Sweep ${selectedTokens.length} token(s)`}
+                  {sweeping ? "⟳ Sweeping..." : `🧹 Sweep ${selectedTokens.length} token(s) → ${isSolana ? "SOL" : "ETH"}`}
                 </button>
               </>
             )}
