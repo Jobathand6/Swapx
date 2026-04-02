@@ -421,7 +421,7 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
     <div style={{ padding: "12px 4px 4px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 12px" }}>
         <span style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: "#9945FF", letterSpacing: ".8px" }}>Swap</span>
-        <button className="pg-settings-btn" style={{ color: "rgba(153,69,255,0.38)" }}>⚙</button>
+        <button className="pg-settings-btn" style={{ color: "rgba(153,69,255,0.38)" }} onClick={() => window._solanaToggleSettings && window._solanaToggleSettings()}>⚙</button>
       </div>
       <SolanaSwap />
     </div>

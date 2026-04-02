@@ -3,15 +3,18 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const CHAINS = [
+const CHAINS_AVAILABLE = [
+  { name: "Base",   symbol: "BASE", color: "#0052FF", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg", },
+  { name: "Solana", symbol: "SOL",  color: "#9945FF", logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png", dex: "⚡ Jupiter" },
+];
+
+const CHAINS_SOON = [
   { name: "Ethereum",  symbol: "ETH",  color: "#627EEA", logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
-  { name: "Polygon",   symbol: "MATIC", color: "#8247E5", logo: "https://assets.coingecko.com/coins/images/4713/small/polygon.png" },
+  { name: "Polygon",   symbol: "MATIC",color: "#8247E5", logo: "https://assets.coingecko.com/coins/images/4713/small/polygon.png" },
   { name: "BNB Chain", symbol: "BNB",  color: "#F3BA2F", logo: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" },
   { name: "Arbitrum",  symbol: "ARB",  color: "#28A0F0", logo: "https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg" },
   { name: "Avalanche", symbol: "AVAX", color: "#E84142", logo: "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png" },
-  { name: "Base",      symbol: "BASE", color: "#0052FF", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg" },
   { name: "Optimism",  symbol: "OP",   color: "#FF0420", logo: "https://assets.coingecko.com/coins/images/25244/small/Optimism.png" },
-  { name: "Solana",    symbol: "SOL",  color: "#9945FF", logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png" },
 ];
 
 const LEVELS = [
@@ -163,15 +166,15 @@ export default function LandingPage() {
             <span className="hero-title-gold">Pangean</span>
           </h1>
           <p className="hero-subtitle">
-            Pangeon is the first multi-chain DEX inspired by Pangea. Swap across 8 chains, clean your dust tokens in 1 click, and evolve to the rank of Pangean.
+            Pangeon is the first multi-chain DEX inspired by Pangea. Swap on Base and Solana, clean your dust tokens in 1 click, and evolve to the rank of Pangean.
           </p>
           <div className="hero-btns">
             <button className="hero-btn-primary" onClick={() => router.push("/swap")}>🚀 Launch App</button>
             <button className="hero-btn-secondary" onClick={() => document.getElementById("chains")?.scrollIntoView({behavior:"smooth"})}>Learn More ↓</button>
           </div>
           <div className="hero-stats">
-            <div className="hero-stat"><div className="hero-stat-value">8</div><div className="hero-stat-label">Supported Chains</div></div>
-            <div className="hero-stat"><div className="hero-stat-value">30+</div><div className="hero-stat-label">Available Tokens</div></div>
+            <div className="hero-stat"><div className="hero-stat-value">2</div><div className="hero-stat-label">Supported Chains</div></div>
+            <div className="hero-stat"><div className="hero-stat-value">10k</div><div className="hero-stat-label">Available Tokens</div></div>
             <div className="hero-stat"><div className="hero-stat-value">6</div><div className="hero-stat-label">Levels to Reach</div></div>
             <div className="hero-stat"><div className="hero-stat-value">1 click</div><div className="hero-stat-label">Dust Sweeper</div></div>
           </div>
@@ -206,7 +209,7 @@ export default function LandingPage() {
           <div className="feature-card">
             <div className="feature-icon">🌐</div>
             <div className="feature-title">Multi-Chain</div>
-            <div className="feature-desc">8 blockchains in a single interface. Ethereum, Solana, Polygon and more — switch chains in one click.</div>
+            <div className="feature-desc">2 blockchains in a single interface. Solana, Base and more comming soon — switch chains in one click.</div>
           </div>
           <div className="feature-card">
             <div className="feature-icon">📊</div>
@@ -223,26 +226,49 @@ export default function LandingPage() {
 
       <div className="divider" />
 
-      {/* CHAINS */}
-      <section className="section" id="chains">
-        <div className="section-badge">⛓️ Multi-Chain</div>
-        <h2 className="section-title">8 chains, 1 interface</h2>
-        <p className="section-desc">Pangeon supports all major EVM blockchains plus Solana, with more chains coming soon.</p>
-        <div className="chains-grid">
-          {CHAINS.map(c => (
-            <div key={c.symbol} className="chain-card" style={{borderColor:`${c.color}22`}}>
-              <img src={c.logo} width={44} height={44} style={{borderRadius:"50%", objectFit:"cover"}} onError={(e) => (e.target as HTMLImageElement).style.display="none"} />
-              <div style={{flex:1}}>
-                <div className="chain-card-name">{c.name}</div>
-                <div className="chain-card-symbol">{c.symbol}</div>
-              </div>
-              <div className="chain-card-badge" style={{background:`${c.color}22`, color:c.color, border:`1px solid ${c.color}44`}}>
-                {c.symbol === "SOL" ? "⚡ Jupiter" : "✓ Paraswap"}
-              </div>
-            </div>
-          ))}
+{/* CHAINS */}
+<section className="section" id="chains">
+  <div className="section-badge">⛓️ Multi-Chain</div>
+  <h2 className="section-title">2 chains, 1 interface</h2>
+  <p className="section-desc" style={{ marginBottom: 48 }}>Pangeon supports Base and Solana, with more chains coming soon.</p>
+  
+  {/* Available chains */}
+  <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 64, flexWrap: "wrap" }}>
+    {CHAINS_AVAILABLE.map(c => (
+      <div key={c.symbol} className="chain-card" style={{ borderColor: `${c.color}44`, background: `${c.color}11`, minWidth: 220 }}>
+        <img src={c.logo} width={44} height={44} style={{ borderRadius: "50%", objectFit: "cover" }} onError={(e) => (e.target as HTMLImageElement).style.display = "none"} />
+        <div style={{ flex: 1 }}>
+          <div className="chain-card-name">{c.name}</div>
+          <div className="chain-card-symbol">{c.symbol}</div>
         </div>
-      </section>
+ 
+      </div>
+    ))}
+  </div>
+
+  {/* Coming soon */}
+  <div style={{ textAlign: "center", marginBottom: 16 }}>
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 12, color: "rgba(255,255,255,0.3)", fontSize: 13 }}>
+      <div style={{ height: 1, width: 80, background: "rgba(255,255,255,0.15)" }} />
+      Chain Coming Soon
+      <div style={{ height: 1, width: 80, background: "rgba(255,255,255,0.15)" }} />
+    </div>
+  </div>
+  <div className="chains-grid">
+    {CHAINS_SOON.map(c => (
+      <div key={c.symbol} className="chain-card" style={{ borderColor: "rgba(255,255,255,0.06)", opacity: 0.5 }}>
+        <img src={c.logo} width={44} height={44} style={{ borderRadius: "50%", objectFit: "cover" }} onError={(e) => (e.target as HTMLImageElement).style.display = "none"} />
+        <div style={{ flex: 1 }}>
+          <div className="chain-card-name">{c.name}</div>
+          <div className="chain-card-symbol">{c.symbol}</div>
+        </div>
+        <div className="chain-card-badge" style={{ background: "rgba(212,160,23,0.08)", color: "#D4A017", border: "1px solid rgba(212,160,23,0.2)" }}>
+          Soon
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
 
       <div className="divider" />
 
@@ -256,10 +282,10 @@ export default function LandingPage() {
               Farmed airdrops? Traded memecoins? Over time, your wallet looks like a prehistoric jungle — dozens of tiny worthless tokens.
             </p>
             <p style={{fontFamily:"'DM Sans', sans-serif", fontSize:16, color:"rgba(255,255,255,0.4)", lineHeight:1.7, marginTop:16}}>
-              Pangeon scans all your tokens, identifies "dust" below your threshold, and converts them to ETH, SOL or USDC in seconds.
+              Pangeon scans all your tokens, identifies "dust" below your threshold, and converts them to ETH or SOL in seconds.
             </p>
             <div style={{display:"flex", flexDirection:"column", gap:12, marginTop:32}}>
-              {["Automatic scan of all your tokens", "Customizable threshold ($1, $5, $10...)", "Convert to ETH, SOL or USDC", "Supports 7 blockchains"].map(item => (
+              {["Automatic scan of all your tokens", "Customizable threshold ($1, $5, $10...)", "Convert to ETH or SOL", "Supports 2 blockchains"].map(item => (
                 <div key={item} style={{display:"flex", alignItems:"center", gap:12}}>
                   <div style={{width:24, height:24, borderRadius:"50%", background:"rgba(212,160,23,0.15)", border:"1px solid rgba(212,160,23,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
                     <span style={{color:"#D4A017", fontSize:12}}>✓</span>
@@ -273,10 +299,10 @@ export default function LandingPage() {
           <div className="dust-visual">
             <div style={{fontSize:13, color:"rgba(212,160,23,0.5)", marginBottom:16, fontFamily:"'DM Sans', sans-serif", textTransform:"uppercase", letterSpacing:"0.8px"}}>Before the sweep</div>
             {[
-              {symbol:"PEPE", logo:"https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg", val:"$0.23"},
-              {symbol:"SHIB", logo:"https://assets.coingecko.com/coins/images/11939/small/shiba.png", val:"$1.45"},
-              {symbol:"BONK", logo:"https://assets.coingecko.com/coins/images/28600/small/bonk.jpg", val:"$0.87"},
-              {symbol:"WIF",  logo:"https://assets.coingecko.com/coins/images/33566/small/wif.png", val:"$2.10"},
+{symbol:"BONK",   logo:"https://assets.coingecko.com/coins/images/28600/small/bonk.jpg", val:"$0.87"},
+{symbol:"POPCAT", logo:"https://dd.dexscreener.com/ds-data/tokens/solana/7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr.png", val:"$1.23"},
+{symbol:"PENGU",  logo:"https://dd.dexscreener.com/ds-data/tokens/solana/2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv.png", val:"$0.45"},
+{symbol:"PIPPIN", logo:"https://dd.dexscreener.com/ds-data/tokens/solana/Dfh5DzRgSvvCFDoYc2ciTkMrbDfRKybA4SoFbPmApump.png", val:"$0.24"},
             ].map(t => (
               <div key={t.symbol} className="dust-token-row">
                 <div style={{display:"flex", alignItems:"center", gap:10}}>
@@ -289,9 +315,9 @@ export default function LandingPage() {
             <div className="dust-arrow">⬇ Sweep in 1 click ⬇</div>
             <div className="dust-result">
               <div style={{display:"flex", alignItems:"center", gap:10}}>
-                <img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" width={32} height={32} style={{borderRadius:"50%"}} />
+                <img src="https://assets.coingecko.com/coins/images/4128/small/solana.png" width={32} height={32} style={{borderRadius:"50%"}} />
                 <div>
-                  <div style={{fontFamily:"'Cinzel', serif", fontWeight:700, color:"#D4A017", fontSize:16}}>0.00245 ETH</div>
+                  <div style={{fontFamily:"'Cinzel', serif", fontWeight:700, color:"#D4A017", fontSize:16}}>0.0312 SOL</div>
                   <div style={{fontFamily:"'DM Sans', sans-serif", fontSize:12, color:"rgba(255,255,255,0.35)"}}>≈ $4.47 recovered</div>
                 </div>
               </div>
@@ -355,7 +381,7 @@ export default function LandingPage() {
           <span style={{fontFamily:"'Cinzel', serif", fontSize:16, fontWeight:700, background:"linear-gradient(135deg, #D4A017, #F5C842)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", letterSpacing:1}}>PANGEON</span>
         </div>
         <div style={{fontFamily:"'DM Sans', sans-serif", fontSize:13, color:"rgba(255,255,255,0.2)"}}>
-          Powered by ThirdWeb · Paraswap · Jupiter · CoinGecko
+          Built with love ❤️
         </div>
         <div style={{fontFamily:"'DM Sans', sans-serif", fontSize:13, color:"rgba(255,255,255,0.2)"}}>
           © 2026 Pangeon. All rights reserved.

@@ -240,7 +240,7 @@ const { address: reownAddress } = useAppKitAccount();
         @keyframes pg-pulse { 0%,100%{opacity:0.08} 50%{opacity:0.18} }
         .dust-card { background: rgba(12,8,3,0.9); border: 1px solid rgba(212,160,23,0.15); border-radius: 24px; padding: 20px 24px; backdrop-filter: blur(24px); }
         .dust-label { font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 10px; }
-        .chain-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.5); font-family: 'DM Sans',sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .chain-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.5); font-family: 'DM Sans',sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
         .chain-btn.active { border-color: rgba(212,160,23,0.4); background: rgba(212,160,23,0.1); color: #D4A017; }
         .chain-btn:hover:not(.disabled) { border-color: rgba(212,160,23,0.2); color: #fff; }
         .chain-btn.disabled { opacity: 0.4; cursor: not-allowed; }
@@ -428,7 +428,7 @@ const { address: reownAddress } = useAppKitAccount();
                       <span>Total value</span><span style={{ color: "#fff" }}>${totalSelected.toFixed(2)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
-                      <span>Fees (3%)</span><span style={{ color: "#ff6b6b" }}>-${(totalSelected * 0.03).toFixed(2)}</span>
+                      <span>Fees (2% on successful swaps only)</span><span style={{ color: "#ff6b6b" }}>-${(totalSelected * 0.02).toFixed(2)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600, borderTop: "1px solid rgba(212,160,23,0.1)", paddingTop: 8, marginTop: 4 }}>
                       <span style={{ color: "rgba(255,255,255,0.6)" }}>You will receive ≈</span>

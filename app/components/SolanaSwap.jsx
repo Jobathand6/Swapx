@@ -40,6 +40,7 @@ export default function SolanaSwap() {
   const [showFromList, setShowFromList] = useState(false);
   const [showToList,   setShowToList]   = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  useEffect(() => { window._solanaToggleSettings = () => setShowSettings(s => !s); }, []);
   const [loading,      setLoading]      = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [error,        setError]        = useState(null);

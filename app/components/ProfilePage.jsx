@@ -34,9 +34,11 @@ function TokenLogo({ src, size = 28 }) {
 }
 
 export default function ProfilePage() {
-  const { address: reownAddress } = useAppKitAccount();
-  const { address: evmAddress } = useAccount();
-  const address = evmAddress || reownAddress;
+const { address: reownAddress, caipAddress } = useAppKitAccount();
+const { address: evmAddress } = useAccount();
+const isSolanaConnected = caipAddress?.startsWith("solana:");
+const solanaAddress = isSolanaConnected ? reownAddress : null;
+const address = evmAddress || reownAddress;
 
   const [swapCount,  setSwapCount]  = useState(0);
   const [swapVolume, setSwapVolume] = useState(0);
@@ -53,11 +55,62 @@ export default function ProfilePage() {
     if (dv) setDustVolume(parseFloat(dv));
   }, []);
 
-  useEffect(() => {
-    if (!address) { setPortfolio([]); return; }
-    const fetchPortfolio = async () => {
-      setPortfolioLoading(true);
-      try {
+useEffect(() => {
+  if (!address) { setPortfolio([]); return; }
+  const fetchPortfolio = async () => {
+    setPortfolioLoading(true);
+    try {
+      const tokens = [];
+
+      if (isSolanaConnected && solanaAddress) {
+        // Fetch SOL balance
+        const solRes = await fetch("https://mainnet.helius-rpc.com/?api-key=b82f7243-5b22-44ae-a3d4-d5869d9c5334", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [solanaAddress] }),
+        });
+        const solData = await solRes.json();
+        if (solData.result?.value !== undefined) {
+          tokens.push({
+            symbol: "SOL", name: "Solana",
+            logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png",
+            balance: (solData.result.value / 1e9).toFixed(4),
+            valueUsd: 0,
+          });
+        }
+
+        // Fetch SPL tokens
+        const splRes = await fetch("https://mainnet.helius-rpc.com/?api-key=b82f7243-5b22-44ae-a3d4-d5869d9c5334", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0", id: 2,
+            method: "getTokenAccountsByOwner",
+            params: [solanaAddress, { programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" }, { encoding: "jsonParsed" }]
+          }),
+        });
+        const splData = await splRes.json();
+        if (splData.result?.value) {
+          for (const acc of splData.result.value) {
+            const info = acc.account.data.parsed.info;
+            const balance = Number(info.tokenAmount.uiAmount);
+            if (balance <= 0) continue;
+            const mint = info.mint;
+            let symbol = mint.slice(0, 6) + "...", name = "Unknown", logo = "";
+            try {
+              const dexRes = await fetch(`https://api.dexscreener.com/tokens/v1/solana/${mint}`);
+              const dexData = await dexRes.json();
+              if (Array.isArray(dexData) && dexData.length > 0) {
+                symbol = dexData[0].baseToken?.symbol || symbol;
+                name = dexData[0].baseToken?.name || name;
+                logo = dexData[0].info?.imageUrl || "";
+              }
+            } catch (e) { }
+            tokens.push({ symbol, name, logo, balance: balance.toFixed(4), valueUsd: 0 });
+          }
+        }
+      } else {
+        // Fetch EVM tokens (Base)
         const chainHex = "0x2105";
         const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${address}/erc20?chain=${chainHex}`, {
           headers: { "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY || "" },
@@ -70,7 +123,6 @@ export default function ProfilePage() {
         });
         const nativeData = await nativeRes.json();
 
-        const tokens = [];
         if (nativeData.balance) {
           tokens.push({
             symbol: "ETH", name: "Ethereum",
@@ -83,20 +135,21 @@ export default function ProfilePage() {
           const bal = Number(t.balance) / Math.pow(10, Number(t.decimals));
           if (bal > 0) {
             tokens.push({
-              symbol: t.symbol,
-              name: t.name,
+              symbol: t.symbol, name: t.name,
               logo: t.logo || `https://dd.dexscreener.com/ds-data/tokens/base/${t.token_address}.png`,
-              balance: bal.toFixed(4),
-              valueUsd: 0,
+              balance: bal.toFixed(4), valueUsd: 0,
             });
           }
         });
-        setPortfolio(tokens);
-      } catch { }
-      setPortfolioLoading(false);
-    };
-    fetchPortfolio();
-  }, [address]);
+      }
+
+      setPortfolio(tokens);
+    } catch (e) { }
+    setPortfolioLoading(false);
+  };
+  fetchPortfolio();
+}, [address, isSolanaConnected, solanaAddress]);
+        
 
   const currentLevel = getLevel(swapCount);
   const progress     = getProgress(swapCount);
