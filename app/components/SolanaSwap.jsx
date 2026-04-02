@@ -59,6 +59,7 @@ console.log("walletAddress:", walletAddress, "address:", address);
   const [quoteData,    setQuoteData]    = useState(null);
   const [searchQuery,  setSearchQuery]  = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [tokenWarnings, setTokenWarnings] = useState({});
 const [searching, setSearching] = useState(false);
   const [solBalances,  setSolBalances]  = useState({});
 
@@ -276,7 +277,22 @@ const filteredTo   = baseList.filter(t => t.symbol && t.mint && t.symbol !== fro
     fetch(`/api/solana?type=search&q=${encodeURIComponent(q)}`)
       .then(r => r.json())
       .then(results => {
-        setSearchResults(Array.isArray(results) ? results : []);
+        const validResults = Array.isArray(results) ? results : [];
+setSearchResults(validResults);
+
+const warnings = {};
+validResults.forEach(t => {
+  fetch(`https://api.dexscreener.com/tokens/v1/solana/${t.mint}`)
+    .then(r => r.json())
+    .then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        const pair = data[0];
+        const isNew = pair.pairCreatedAt && (Date.now() - pair.pairCreatedAt) < 30 * 24 * 60 * 60 * 1000;
+        const isSmallCap = pair.marketCap && pair.marketCap < 1000000;
+        if (isNew || isSmallCap) setTokenWarnings(prev => ({ ...prev, [t.mint]: { isNew, isSmallCap } }));
+      }
+    }).catch(() => {});
+});
         setSearching(false);
       })
       .catch(() => { setSearchResults([]); setSearching(false); });
@@ -291,7 +307,11 @@ const filteredTo   = baseList.filter(t => t.symbol && t.mint && t.symbol !== fro
                 <button key={t.mint + t.symbol} className="sol-tok-item" onClick={() => { showFromList ? setFromToken(t) : setToToken(t); setShowFromList(false); setShowToList(false); setSearchQuery(""); }}>
                   <TokenLogo src={t.logo} size={38} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14 }}>{t.symbol}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+  <span style={{ fontWeight: 700, fontSize: 14 }}>{t.symbol}</span>
+  {tokenWarnings[t.mint]?.isNew && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 20, background: "rgba(255,165,0,0.15)", color: "#FFA500", border: "1px solid rgba(255,165,0,0.3)" }}>🆕 New</span>}
+  {tokenWarnings[t.mint]?.isSmallCap && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 20, background: "rgba(255,80,80,0.15)", color: "#ff6b6b", border: "1px solid rgba(255,80,80,0.3)" }}>⚠️ Low Cap</span>}
+</div>
                     <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{t.name}</div>
                   </div>
                   {getSolBalance(t) !== null && getSolBalance(t) > 0
