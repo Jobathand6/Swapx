@@ -26,15 +26,9 @@ const L = {
 };
 
 // ─── Tokens Base uniquement
-const BASE_TOKENS = [
-  { symbol: "ETH",  name: "Ethereum",         address: "NATIVE",                                      logo: L.ETH,  decimals: 18 },
-  { symbol: "USDC", name: "USD Coin",          address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: L.USDC, decimals: 6  },
-  { symbol: "DAI",  name: "Dai",               address: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", logo: L.DAI,  decimals: 18 },
-  { symbol: "AERO", name: "Aerodrome Finance", address: "0x940181a94a35a4569e4529a3cdfb74e38fd98631", logo: L.AERO, decimals: 18 },
-  { symbol: "ZRO",  name: "LayerZero",         address: "0x6985884C4392D348587B19cb9eAAf157F13271cd", logo: L.ZRO,  decimals: 6  },
-  { symbol: "VVV",  name: "Venice Token",      address: "0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf", logo: L.VVV,  decimals: 18 },
-  { symbol: "ZORA", name: "Zora",              address: "0x1111111111166b7FE7bd91427724B487980aFc69", logo: L.ZORA, decimals: 18 },
-  { symbol: "BNKR", name: "BankrCoin",         address: "0x22aF33FE49fD1Fa80c7149773dDe5890D3c76F3b", logo: L.BNKR, decimals: 18 },
+const BASE_STABLE_TOKENS = [
+  { symbol: "ETH",  name: "Ethereum", address: "NATIVE", logo: L.ETH, decimals: 18 },
+  { symbol: "USDC", name: "USD Coin", address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: L.USDC, decimals: 6 },
 ];
 
 const COINGECKO_IDS = {
@@ -132,8 +126,8 @@ const { switchChain } = useSwitchChain();
   const [chain, setChain] = useState("base");
   const isSolana = chain === "solana";
 
-  const [fromToken, setFromToken] = useState(BASE_TOKENS[0]);
-  const [toToken,   setToToken]   = useState(BASE_TOKENS[1]);
+const [fromToken, setFromToken] = useState(BASE_STABLE_TOKENS[0]);
+const [toToken,   setToToken]   = useState(BASE_STABLE_TOKENS[1]);
   const [fromAmount,   setFromAmount]   = useState("");
   const [toAmount,     setToAmount]     = useState("");
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -144,6 +138,34 @@ const { switchChain } = useSwitchChain();
   const [showToList,   setShowToList]   = useState(false);
   const [searchQuery,  setSearchQuery]  = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [baseTrendingTokens, setBaseTrendingTokens] = useState([]);
+const [baseWalletTokens, setBaseWalletTokens] = useState([]);
+
+useEffect(() => {
+  fetch("https://api.dexscreener.com/tokens/v1/base/0x940181a94a35a4569e4529a3cdfb74e38fd98631,0x6985884C4392D348587B19cb9eAAf157F13271cd,0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb,0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf,0x1111111111166b7FE7bd91427724B487980aFc69,0x22aF33FE49fD1Fa80c7149773dDe5890D3c76F3b,0x4200000000000000000000000000000000000042,0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22")
+    .then(r => r.json())
+    .then(data => {
+      const seen = new Set(BASE_STABLE_TOKENS.map(t => t.address));
+      const tokens = (Array.isArray(data) ? data : [])
+        .filter(p => p.baseToken?.address && !seen.has(p.baseToken.address))
+        .sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0))
+        .reduce((acc, p) => {
+          if (!acc.find(t => t.address === p.baseToken.address)) {
+            acc.push({
+              symbol: p.baseToken.symbol,
+              name: p.baseToken.name,
+              address: p.baseToken.address,
+              logo: p.info?.imageUrl || "",
+              decimals: 18,
+            });
+          }
+          return acc;
+        }, [])
+        .slice(0, 17);
+      setBaseTrendingTokens(tokens);
+    })
+    .catch(() => {});
+}, []);
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState(null);
   const [txHash,       setTxHash]       = useState(null);
@@ -288,6 +310,8 @@ const quote = await getSwapQuote({ chainId: 8453, fromToken: fromToken.address, 
     setLoading(false); setFromAmount(""); setToAmount("");
   };
 
+
+const BASE_TOKENS = [...baseWalletTokens, ...BASE_STABLE_TOKENS.filter(t => !baseWalletTokens.find(w => w.address === t.address)), ...baseTrendingTokens.filter(t => !baseWalletTokens.find(w => w.address === t.address))];
 const baseList = searchResults.length > 0 ? searchResults : BASE_TOKENS;
 const filteredFrom = baseList.filter(t => t.symbol && t.address && t.symbol !== toToken?.symbol);
 const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== fromToken?.symbol);

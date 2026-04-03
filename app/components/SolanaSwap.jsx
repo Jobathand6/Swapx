@@ -8,17 +8,10 @@ import { Connection, VersionedTransaction } from "@solana/web3.js";
 
 const SOLANA_RPC = "/api/solana-rpc";
 
-const POPULAR_TOKENS = [
-  { symbol: "SOL",   name: "Solana",         mint: "So11111111111111111111111111111111111111112",  logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png", decimals: 9 },
-  { symbol: "USDC",  name: "USD Coin",        mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", logo: "https://assets.coingecko.com/coins/images/6319/small/usdc.png", decimals: 6 },
-  { symbol: "USDT",  name: "Tether",          mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", logo: "https://assets.coingecko.com/coins/images/325/small/tether.png", decimals: 6 },
-  { symbol: "BONK",  name: "Bonk",            mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", logo: "https://assets.coingecko.com/coins/images/28600/small/bonk.jpg", decimals: 5 },
-  { symbol: "JUP",   name: "Jupiter",         mint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",  logo: "https://assets.coingecko.com/coins/images/34188/small/jup.png", decimals: 6 },
-  { symbol: "WIF",   name: "dogwifhat",       mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", logo: "https://assets.coingecko.com/coins/images/33566/thumb/dogwifhat.png", decimals: 6 },
-  { symbol: "TRUMP", name: "Official Trump",  mint: "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN.png", decimals: 6 },
-  { symbol: "FART",  name: "Fartcoin",        mint: "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump.png", decimals: 6 },
-  { symbol: "ORCA",  name: "Orca",            mint: "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE", logo: "https://dd.dexscreener.com/ds-data/tokens/solana/orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE.png", decimals: 6 },
-  { symbol: "MSOL",  name: "Marinade SOL",    mint: "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So", logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png", decimals: 9 },
+const STABLE_TOKENS = [
+  { symbol: "SOL",  name: "Solana",   mint: "So11111111111111111111111111111111111111112",  logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png", decimals: 9 },
+  { symbol: "USDC", name: "USD Coin", mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", logo: "https://assets.coingecko.com/coins/images/6319/small/usdc.png", decimals: 6 },
+  { symbol: "USDT", name: "Tether",   mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", logo: "https://assets.coingecko.com/coins/images/325/small/tether.png", decimals: 6 },
 ];
 
 function TokenLogo({ src, size = 28 }) {
@@ -33,8 +26,8 @@ function TokenLogo({ src, size = 28 }) {
 }
 
 export default function SolanaSwap() {
-  const [fromToken, setFromToken] = useState(POPULAR_TOKENS[0]);
-  const [toToken,   setToToken]   = useState(POPULAR_TOKENS[1]);
+const [fromToken, setFromToken] = useState(STABLE_TOKENS[0]);
+const [toToken,   setToToken]   = useState(STABLE_TOKENS[1]);
   const [fromAmount,   setFromAmount]   = useState("");
   const [toAmount,     setToAmount]     = useState("");
   const [showFromList, setShowFromList] = useState(false);
@@ -60,8 +53,54 @@ console.log("walletAddress:", walletAddress, "address:", address);
   const [searchQuery,  setSearchQuery]  = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [tokenWarnings, setTokenWarnings] = useState({});
+  const [trendingTokens, setTrendingTokens] = useState([]);
+  const [walletTokens, setWalletTokens] = useState([]);
+
+
+useEffect(() => {
+  fetch("https://api.dexscreener.com/tokens/v1/solana/So11111111111111111111111111111111111111112,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263,JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE,2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN")
+    .then(r => r.json())
+    .then(data => {
+      const seen = new Set(STABLE_TOKENS.map(t => t.mint));
+      const tokens = (Array.isArray(data) ? data : [])
+        .filter(p => p.baseToken?.address && !seen.has(p.baseToken.address))
+        .sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0))
+        .reduce((acc, p) => {
+          if (!acc.find(t => t.mint === p.baseToken.address)) {
+            acc.push({
+              symbol: p.baseToken.symbol,
+              name: p.baseToken.name,
+              mint: p.baseToken.address,
+              logo: p.info?.imageUrl || "",
+              decimals: 6,
+            });
+          }
+          return acc;
+        }, [])
+        .slice(0, 17);
+      setTrendingTokens(tokens);
+    })
+    .catch(() => {});
+}, []);
 const [searching, setSearching] = useState(false);
   const [solBalances,  setSolBalances]  = useState({});
+  useEffect(() => {
+  if (!solBalances || Object.keys(solBalances).length === 0) return;
+  const tokens = Object.entries(solBalances)
+    .filter(([mint, bal]) => bal > 0)
+    .map(([mint, bal]) => {
+      const known = STABLE_TOKENS.find(t => t.mint === mint) || trendingTokens.find(t => t.mint === mint);
+      return known ? { ...known, balance: bal } : {
+        symbol: mint.slice(0, 6) + "...",
+        name: "Unknown",
+        mint,
+        logo: "",
+        decimals: 6,
+        balance: bal,
+      };
+    });
+  setWalletTokens(tokens);
+}, [solBalances, trendingTokens]);
 
 
 
@@ -149,6 +188,11 @@ const handleSwap = async () => {
     setFromAmount(toAmount); setToAmount(fromAmount);
   };
 
+const POPULAR_TOKENS = [
+  ...walletTokens,
+  ...STABLE_TOKENS.filter(t => !walletTokens.find(w => w.mint === t.mint)),
+  ...trendingTokens.filter(t => !walletTokens.find(w => w.mint === t.mint)),
+];
 const baseList = searchResults.length > 0 ? searchResults : POPULAR_TOKENS;
 const filteredFrom = baseList.filter(t => t.symbol && t.mint && t.symbol !== toToken.symbol);
 const filteredTo   = baseList.filter(t => t.symbol && t.mint && t.symbol !== fromToken.symbol);
