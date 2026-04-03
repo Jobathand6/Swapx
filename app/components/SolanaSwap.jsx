@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAppKitProvider } from "@reown/appkit/react";
-import { useAppKitAccount, useAppKit, useAppKitConnection } from "@reown/appkit/react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useAccount } from "wagmi";
 
 import { Connection, VersionedTransaction } from "@solana/web3.js";
 
@@ -38,16 +39,13 @@ const [toToken,   setToToken]   = useState(STABLE_TOKENS[1]);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [error,        setError]        = useState(null);
   const [txHash,       setTxHash]       = useState(null);
- const { walletProvider } = useAppKitProvider("solana");
+ const { publicKey, sendTransaction, connected, wallet } = useWallet();
+const { setVisible } = useWalletModal();
 const connection = new Connection("https://mainnet.helius-rpc.com/?api-key=b82f7243-5b22-44ae-a3d4-d5869d9c5334", "confirmed");
-const publicKey = walletProvider?.publicKey || null;
-const sendTransaction = walletProvider?.sendTransaction?.bind(walletProvider) || null;
-const { isConnected: connected, address, caipAddress } = useAppKitAccount();
+const address = publicKey?.toString() || null;
 
 
-const rawAddress = address?.includes(":") ? address.split(":").pop() : address;
-const walletAddress = rawAddress || publicKey?.toString() || null;
-console.log("walletAddress:", walletAddress, "address:", address);
+const walletAddress = publicKey?.toString() || null;
   const [slippage,     setSlippage]     = useState(0.5);
   const [quoteData,    setQuoteData]    = useState(null);
   const [searchQuery,  setSearchQuery]  = useState("");

@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
-import { useAppKitAccount, useAppKit } from "@reown/appkit/react";
+import { useConnectModal, ConnectButton } from "@rainbow-me/rainbowkit";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 import { base } from "thirdweb/chains";
 
@@ -118,7 +120,11 @@ function PriceTicker({ prices, changes }) {
 
 // ─── Composant principal
 export default function SwapWidget() {
-const { address: account, isConnected } = useAppKitAccount();
+const { address: account, isConnected } = useAccount();
+const { publicKey: solanaPublicKey, connected: solanaConnected } = useWallet();
+const { setVisible: setSolanaModalVisible } = useWalletModal();
+const solanaAccount = solanaPublicKey?.toString() || null;
+const { openConnectModal } = useConnectModal();
 
 const { address: evmAddress } = useAccount();
 const { switchChain } = useSwitchChain();
@@ -417,7 +423,25 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
 
 
 {/* Wallet connect */}
-<appkit-button />
+<div style={{ zIndex: 100 }}>
+  {isSolana ? (
+    <button onClick={() => setSolanaModalVisible(true)} style={{ padding: "8px 18px", borderRadius: 12, background: solanaConnected ? "rgba(153,69,255,0.1)" : "linear-gradient(135deg,#9945FF,#7a35cc)", border: solanaConnected ? "1px solid rgba(153,69,255,0.3)" : "none", color: solanaConnected ? "#9945FF" : "#fff", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+      {solanaConnected ? solanaAccount?.slice(0,4) + "..." + solanaAccount?.slice(-4) : "Connect Solana"}
+    </button>
+  ) : (
+    <ConnectButton.Custom>
+      {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
+        const connected = mounted && account && chain;
+        return (
+          <button onClick={connected ? openAccountModal : openConnectModal} style={{ padding: "8px 18px", borderRadius: 12, background: connected ? "rgba(212,160,23,0.1)" : "linear-gradient(135deg,#D4A017,#F5C842)", border: connected ? "1px solid rgba(212,160,23,0.3)" : "none", color: connected ? "#D4A017" : "#0a0600", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            {connected ? account.displayName : "Connect Wallet"}
+          </button>
+        );
+      }}
+    </ConnectButton.Custom>
+  )}
+</div>
+
         </div>
       </nav>
 
@@ -595,14 +619,22 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
         </div>
       )}
 
-{/* Mobile top navbar */}
-<nav className="pg-nav-top-mobile">
-  <a href="/swap" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-    <img src="/logo.png" style={{ width: 32, height: 32, objectFit: "contain" }} alt="Pangeon" />
-    <span style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
-  </a>
-  <appkit-button />
-</nav>
+{isSolana ? (
+  <button onClick={() => setSolanaModalVisible(true)} style={{ padding: "8px 14px", borderRadius: 12, background: solanaConnected ? "rgba(153,69,255,0.1)" : "linear-gradient(135deg,#9945FF,#7a35cc)", border: solanaConnected ? "1px solid rgba(153,69,255,0.3)" : "none", color: solanaConnected ? "#9945FF" : "#fff", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+    {solanaConnected ? solanaAccount?.slice(0,4) + "..." + solanaAccount?.slice(-4) : "Connect"}
+  </button>
+) : (
+  <ConnectButton.Custom>
+    {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
+      const connected = mounted && account && chain;
+      return (
+        <button onClick={connected ? openAccountModal : openConnectModal} style={{ padding: "8px 14px", borderRadius: 12, background: connected ? "rgba(212,160,23,0.1)" : "linear-gradient(135deg,#D4A017,#F5C842)", border: connected ? "1px solid rgba(212,160,23,0.3)" : "none", color: connected ? "#D4A017" : "#0a0600", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          {connected ? account.displayName : "Connect"}
+        </button>
+      );
+    }}
+  </ConnectButton.Custom>
+)}
 
 {/* Mobile bottom navbar */}
 <nav className="pg-nav-mobile">

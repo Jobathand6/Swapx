@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useAccount } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const LEVELS = [
   { name: "Fossil",  emoji: "🪨", min: 0,     max: 49,       color: "#8B7355", bg: "rgba(139,115,85,0.15)",  desc: "Complete your first swap to start the adventure." },
@@ -34,7 +35,9 @@ function TokenLogo({ src, size = 28 }) {
 }
 
 export default function ProfilePage() {
-const { address: reownAddress, caipAddress } = useAppKitAccount();
+const { publicKey } = useWallet();
+const reownAddress = publicKey?.toString() || null;
+const caipAddress = reownAddress ? `solana:mainnet:${reownAddress}` : null;
 const { address: evmAddress } = useAccount();
 const isSolanaConnected = caipAddress?.startsWith("solana:");
 const solanaAddress = isSolanaConnected ? reownAddress : null;
@@ -205,7 +208,24 @@ useEffect(() => {
           <a href="/profile" style={{ padding: "8px 16px", borderRadius: 12, color: "#D4A017", background: "rgba(212,160,23,0.08)", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>👤 Profile</a>
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <appkit-button />
+          <ConnectButton.Custom>
+  {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
+    const connected = mounted && account && chain;
+    return (
+      <div style={{ zIndex: 100 }}>
+        {!connected ? (
+          <button onClick={openConnectModal} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#D4A017,#F5C842)", border: "none", color: "#0a0600", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            Connect Wallet
+          </button>
+        ) : (
+          <button onClick={openAccountModal} style={{ padding: "8px 18px", borderRadius: 12, background: "rgba(212,160,23,0.1)", border: "1px solid rgba(212,160,23,0.3)", color: "#D4A017", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+            {account.displayName}
+          </button>
+        )}
+      </div>
+    );
+  }}
+</ConnectButton.Custom>
         </div>
       </nav>
 {/* Mobile top navbar */}
@@ -214,7 +234,24 @@ useEffect(() => {
     <img src="/logo.png" style={{ width: 32, height: 32, objectFit: "contain" }} alt="Pangeon" />
     <span style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
   </a>
-  <appkit-button />
+  <ConnectButton.Custom>
+  {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
+    const connected = mounted && account && chain;
+    return (
+      <div style={{ zIndex: 100 }}>
+        {!connected ? (
+          <button onClick={openConnectModal} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#D4A017,#F5C842)", border: "none", color: "#0a0600", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            Connect Wallet
+          </button>
+        ) : (
+          <button onClick={openAccountModal} style={{ padding: "8px 18px", borderRadius: 12, background: "rgba(212,160,23,0.1)", border: "1px solid rgba(212,160,23,0.3)", color: "#D4A017", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+            {account.displayName}
+          </button>
+        )}
+      </div>
+    );
+  }}
+</ConnectButton.Custom>
 </nav>
 
 {/* Mobile bottom navbar */}
