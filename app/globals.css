@@ -10,7 +10,14 @@ body {
 
 [data-rk] {
   z-index: 9999 !important;
+  pointer-events: all !important;
 }
-#rainbow-kit-modal * {
-  color: white !important;
+
+[data-rk] * {
+  pointer-events: all !important;
+}
+
+[data-rk] button {
+  pointer-events: all !important;
+  cursor: pointer !important;
 }
