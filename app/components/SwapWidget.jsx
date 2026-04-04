@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
-import { useConnectModal, ConnectButton } from "@rainbow-me/rainbowkit";
+import { useWeb3Modal } from "@web3modal/wagmi";
 import { useDisconnect } from "wagmi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
@@ -122,10 +122,11 @@ function PriceTicker({ prices, changes }) {
 // ─── Composant principal
 export default function SwapWidget() {
 const { address: account, isConnected } = useAccount();
-const { publicKey: solanaPublicKey, connected: solanaConnected } = useWallet();
+const { publicKey: solanaPublicKey, connected: solanaConnected, disconnect: disconnectSolana } = useWallet();
 const { setVisible: setSolanaModalVisible } = useWalletModal();
 const solanaAccount = solanaPublicKey?.toString() || null;
-const { openConnectModal } = useConnectModal();
+const web3Modal = typeof window !== 'undefined' ? useWeb3Modal() : null;
+const openConnectModal = () => web3Modal?.open();
 const { disconnect } = useDisconnect();
 
 const { address: evmAddress } = useAccount();
@@ -142,6 +143,7 @@ const [toToken,   setToToken]   = useState(BASE_STABLE_TOKENS[1]);
   const [swapSource,   setSwapSource]   = useState(null);
   const [slippage,     setSlippage]     = useState(1.0);
   const [showSettings, setShowSettings] = useState(false);
+  const [showWalletMenu, setShowWalletMenu] = useState(false);
   const [showFromList, setShowFromList] = useState(false);
   const [showToList,   setShowToList]   = useState(false);
   const [searchQuery,  setSearchQuery]  = useState("");
@@ -425,38 +427,44 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
 
 
 {/* Wallet connect */}
-<div style={{ zIndex: 9999, position: "relative" }}>
-  {isSolana ? (
-    <button onClick={() => setSolanaModalVisible(true)} style={{ padding: "8px 18px", borderRadius: 12, background: solanaConnected ? "rgba(153,69,255,0.1)" : "linear-gradient(135deg,#9945FF,#7a35cc)", border: solanaConnected ? "1px solid rgba(153,69,255,0.3)" : "none", color: solanaConnected ? "#9945FF" : "#fff", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-      {solanaConnected ? solanaAccount?.slice(0,4) + "..." + solanaAccount?.slice(-4) : "Connect Solana"}
-    </button>
-  ) : (
-<ConnectButton.Custom>
-  {({ account, chain, openConnectModal, mounted }) => {
-    const connected = mounted && account && chain;
-    return (
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        {connected ? (
-          <>
-            <span style={{ color: "#D4A017", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600 }}>
-              {account.displayName}
-            </span>
-            <button onClick={() => disconnect()} style={{ padding: "6px 12px", borderRadius: 10, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontFamily: "'DM Sans',sans-serif", fontSize: 13, cursor: "pointer" }}>
-              Disconnect
-            </button>
-          </>
-        ) : (
-          <button onClick={openConnectModal} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#D4A017,#F5C842)", border: "none", color: "#0a0600", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            Connect Wallet
+<div style={{ position: "relative", zIndex: 9999 }}>
+  {!isConnected && !solanaConnected ? (
+    <>
+      <button onClick={() => setShowWalletMenu(!showWalletMenu)} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#D4A017,#F5C842)", border: "none", color: "#0a0600", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+        Connect Wallet
+      </button>
+      {showWalletMenu && (
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "rgba(10,7,2,0.98)", border: "1px solid rgba(212,160,23,0.2)", borderRadius: 16, padding: 12, display: "flex", flexDirection: "column", gap: 8, minWidth: 200, backdropFilter: "blur(20px)" }}>
+<button onClick={() => { openConnectModal(); setShowWalletMenu(false); }} style={{ padding: "10px 16px", borderRadius: 12, background: "rgba(0,82,255,0.1)", border: "1px solid rgba(0,82,255,0.3)", color: "#0052FF", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", textAlign: "left" }}>
+  🔷 Connect EVM Wallet
+</button>
+          <button onClick={() => { setSolanaModalVisible(true); setShowWalletMenu(false); }} style={{ padding: "10px 16px", borderRadius: 12, background: "rgba(153,69,255,0.1)", border: "1px solid rgba(153,69,255,0.3)", color: "#9945FF", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", textAlign: "left" }}>
+            🟣 Connect Solana Wallet
           </button>
-        )}
-      </div>
-    );
-  }}
-</ConnectButton.Custom>
+        </div>
+      )}
+    </>
+  ) : (
+    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      {isConnected && (
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span style={{ color: "#0052FF", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600 }}>
+            {account?.slice(0,4)}...{account?.slice(-4)}
+          </span>
+          <button onClick={() => { disconnect(); }} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontSize: 12, cursor: "pointer" }}>✕</button>
+        </div>
+      )}
+      {solanaConnected && (
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span style={{ color: "#9945FF", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600 }}>
+            {solanaAccount?.slice(0,4)}...{solanaAccount?.slice(-4)}
+          </span>
+          <button onClick={() => disconnectSolana()} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontSize: 12, cursor: "pointer" }}>✕</button>
+        </div>
+      )}
+    </div>
   )}
 </div>
-
         </div>
       </nav>
 
@@ -639,16 +647,9 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
     {solanaConnected ? solanaAccount?.slice(0,4) + "..." + solanaAccount?.slice(-4) : "Connect"}
   </button>
 ) : (
-  <ConnectButton.Custom>
-    {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
-      const connected = mounted && account && chain;
-      return (
-        <button onClick={connected ? openAccountModal : openConnectModal} style={{ padding: "8px 14px", borderRadius: 12, background: connected ? "rgba(212,160,23,0.1)" : "linear-gradient(135deg,#D4A017,#F5C842)", border: connected ? "1px solid rgba(212,160,23,0.3)" : "none", color: connected ? "#D4A017" : "#0a0600", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-          {connected ? account.displayName : "Connect"}
-        </button>
-      );
-    }}
-  </ConnectButton.Custom>
+  <button onClick={() => openConnectModal()} style={{ padding: "8px 14px", borderRadius: 12, background: isConnected ? "rgba(212,160,23,0.1)" : "linear-gradient(135deg,#D4A017,#F5C842)", border: isConnected ? "1px solid rgba(212,160,23,0.3)" : "none", color: isConnected ? "#D4A017" : "#0a0600", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+    {isConnected ? account?.slice(0,4) + "..." + account?.slice(-4) : "Connect"}
+  </button>
 )}
 
 {/* Mobile bottom navbar */}

@@ -1,17 +1,35 @@
 "use client";
-import { WagmiProvider } from "wagmi";
+import { WagmiProvider, createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
+import { createWeb3Modal } from "@web3modal/wagmi";;
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
-import "@rainbow-me/rainbowkit/styles.css";
+import { injected, walletConnect, coinbaseWallet } from "wagmi/connectors";
 
-const config = getDefaultConfig({
-  appName: "Pangeon",
-  projectId: "e38ae36f744030e43be89df81d3eb7ba",
+const projectId = "e38ae36f744030e43be89df81d3eb7ba";
+
+const config = createConfig({
   chains: [base],
-  ssr: false,
+  connectors: [
+    walletConnect({ projectId }),
+    injected(),
+    coinbaseWallet({ appName: "Pangeon" }),
+  ],
+  transports: {
+    [base.id]: http(),
+  },
+});
+
+createWeb3Modal({
+  wagmiConfig: config,
+  projectId,
+  themeMode: "dark",
+  themeVariables: {
+    "--w3m-accent": "#D4A017",
+    "--w3m-border-radius-master": "12px",
+    "--w3m-font-family": "'DM Sans', sans-serif",
+  },
 });
 
 const queryClient = new QueryClient();
@@ -22,19 +40,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme({
-          accentColor: '#D4A017',
-          accentColorForeground: '#000000',
-          borderRadius: 'medium',
-          fontStack: 'system',
-          overlayBlur: 'small',
-        })}>
-          <ConnectionProvider endpoint={HELIUS_RPC}>
-            <WalletProvider wallets={wallets} autoConnect>
-              {children}
-            </WalletProvider>
-          </ConnectionProvider>
-        </RainbowKitProvider>
+        <ConnectionProvider endpoint={HELIUS_RPC}>
+          <WalletProvider wallets={wallets} autoConnect>
+            {children}
+          </WalletProvider>
+        </ConnectionProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

@@ -8,16 +8,26 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* RainbowKit modal fix */
 [data-rk] {
-  z-index: 9999 !important;
-  pointer-events: all !important;
+  z-index: 99999 !important;
 }
 
-[data-rk] * {
-  pointer-events: all !important;
+/* Solana wallet adapter modal fix */
+.wallet-adapter-modal-wrapper {
+  z-index: 99999 !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
 }
 
-[data-rk] button {
-  pointer-events: all !important;
-  cursor: pointer !important;
+.wallet-adapter-modal {
+  z-index: 99998 !important;
+}
+
+.wallet-adapter-modal-overlay {
+  z-index: 99997 !important;
+  position: fixed !important;
+  inset: 0 !important;
 }
