@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
-import { useWeb3Modal } from "@web3modal/wagmi";
+
 import { useDisconnect } from "wagmi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
@@ -125,8 +125,8 @@ const { address: account, isConnected } = useAccount();
 const { publicKey: solanaPublicKey, connected: solanaConnected, disconnect: disconnectSolana } = useWallet();
 const { setVisible: setSolanaModalVisible } = useWalletModal();
 const solanaAccount = solanaPublicKey?.toString() || null;
-const web3Modal = typeof window !== 'undefined' ? useWeb3Modal() : null;
-const openConnectModal = () => web3Modal?.open();
+
+const openConnectModal = () => document.querySelector('w3m-button')?.click();
 const { disconnect } = useDisconnect();
 
 const { address: evmAddress } = useAccount();
@@ -399,6 +399,7 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
       `}</style>
 
       <PangeaBG />
+      <w3m-button style={{ display: 'none' }} />
 
       {/* Level-up notification */}
       {levelUpNotif && (
