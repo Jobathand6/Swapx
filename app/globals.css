@@ -31,3 +31,17 @@ body {
   position: fixed !important;
   inset: 0 !important;
 }
+#phantom-app-button-container {
+  display: none !important;
+}
+[id*="phantom"] {
+  display: none !important;
+}
+
+[class*="phantom-app"] {
+  display: none !important;
+}
+
+iframe[src*="phantom"] {
+  display: none !important;
+}

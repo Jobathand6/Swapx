@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useAccount } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+
+
 import { Connection, VersionedTransaction } from "@solana/web3.js";
 
 const HELIUS_RPC = "https://mainnet.helius-rpc.com/?api-key=b82f7243-5b22-44ae-a3d4-d5869d9c5334";
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 
 const CHAINS_CONFIG = [
-  { id: "0x2105", name: "Base",      symbol: "ETH",  color: "#0052FF", moralisId: "0x2105", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg", available: true },
+  { id: "0x2105", name: "Base",      symbol: "ETH",  color: "#0052FF", moralisId: "0x2105", logo: "https://raw.githubusercontent.com/base-org/brand-kit/001c0e9b40a67799ebe0418671ac4e02a0c683ce/logo/in-product/Base_Network_Logo.svg", available: false },
   { id: "solana", name: "Solana",    symbol: "SOL",  color: "#9945FF", moralisId: null,     logo: "https://assets.coingecko.com/coins/images/4128/small/solana.png", available: true },
   { id: "0x1",    name: "Ethereum",  symbol: "ETH",  color: "#627EEA", moralisId: "0x1",    logo: "https://assets.coingecko.com/coins/images/279/small/ethereum.png", available: false },
   { id: "0x38",   name: "BNB Chain", symbol: "BNB",  color: "#F3BA2F", moralisId: "0x38",   logo: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png", available: false },
@@ -47,7 +48,9 @@ function TokenImg({ src, size = 28 }) {
 export default function DustSweeper() {
   const { publicKey } = useWallet();
 const solanaAccount = publicKey?.toString() || null;
-const { address: evmAccount } = useAccount();
+const { disconnect } = useWallet();
+const { setVisible } = useWalletModal();
+
 
   const [selectedChain, setSelectedChain] = useState(CHAINS_CONFIG[0]);
   const [threshold, setThreshold] = useState(5);
@@ -63,7 +66,7 @@ const { address: evmAccount } = useAccount();
 
   const effectiveThreshold = customThreshold ? Number(customThreshold) : threshold;
   const isSolana = selectedChain.id === "solana";
-  const account = isSolana ? solanaAccount : (evmAccount || solanaAccount);
+  const account = solanaAccount;
 
   // ─── SCAN ────────────────────────────────────────────────
   const handleScan = async () => {
@@ -289,24 +292,18 @@ const { address: evmAccount } = useAccount();
           <a href="/profile" style={{ padding: "8px 16px", borderRadius: 12, color: "#ffffff", fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>👤 Profile</a>
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <ConnectButton.Custom>
-  {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
-    const connected = mounted && account && chain;
-    return (
-      <div style={{ zIndex: 100 }}>
-        {!connected ? (
-          <button onClick={openConnectModal} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#D4A017,#F5C842)", border: "none", color: "#0a0600", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            Connect Wallet
-          </button>
-        ) : (
-          <button onClick={openAccountModal} style={{ padding: "8px 18px", borderRadius: 12, background: "rgba(212,160,23,0.1)", border: "1px solid rgba(212,160,23,0.3)", color: "#D4A017", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-            {account.displayName}
-          </button>
-        )}
-      </div>
-    );
-  }}
-</ConnectButton.Custom>
+{!solanaAccount ? (
+  <button onClick={() => setVisible(true)} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#9945FF,#7a35cc)", border: "none", color: "#fff", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+    Connect Wallet
+  </button>
+) : (
+  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+    <span style={{ color: "#9945FF", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600 }}>
+      {solanaAccount?.slice(0,4)}...{solanaAccount?.slice(-4)}
+    </span>
+    <button onClick={() => disconnect()} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontSize: 12, cursor: "pointer" }}>✕</button>
+  </div>
+)}
         </div>
       </nav>
 
@@ -316,24 +313,18 @@ const { address: evmAccount } = useAccount();
           <img src="/logo.png" style={{ width: 32, height: 32, objectFit: "contain" }} alt="Pangeon" />
           <span style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 700, background: "linear-gradient(135deg,#D4A017,#F5C842)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 2 }}>PANGEON</span>
         </a>
-        <ConnectButton.Custom>
-  {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
-    const connected = mounted && account && chain;
-    return (
-      <div style={{ zIndex: 100 }}>
-        {!connected ? (
-          <button onClick={openConnectModal} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#D4A017,#F5C842)", border: "none", color: "#0a0600", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-            Connect Wallet
-          </button>
-        ) : (
-          <button onClick={openAccountModal} style={{ padding: "8px 18px", borderRadius: 12, background: "rgba(212,160,23,0.1)", border: "1px solid rgba(212,160,23,0.3)", color: "#D4A017", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-            {account.displayName}
-          </button>
-        )}
-      </div>
-    );
-  }}
-</ConnectButton.Custom>
+{!solanaAccount ? (
+  <button onClick={() => setVisible(true)} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#9945FF,#7a35cc)", border: "none", color: "#fff", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+    Connect Wallet
+  </button>
+) : (
+  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+    <span style={{ color: "#9945FF", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600 }}>
+      {solanaAccount?.slice(0,4)}...{solanaAccount?.slice(-4)}
+    </span>
+    <button onClick={() => disconnect()} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontSize: 12, cursor: "pointer" }}>✕</button>
+  </div>
+)}
       </nav>
 
       {/* Mobile bottom navbar */}

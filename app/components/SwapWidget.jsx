@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAccount, useSwitchChain } from "wagmi";
 
-import { useDisconnect } from "wagmi";
+
+
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
@@ -121,18 +121,18 @@ function PriceTicker({ prices, changes }) {
 
 // ─── Composant principal
 export default function SwapWidget() {
-const { address: account, isConnected } = useAccount();
+
 const { publicKey: solanaPublicKey, connected: solanaConnected, disconnect: disconnectSolana } = useWallet();
 const { setVisible: setSolanaModalVisible } = useWalletModal();
 const solanaAccount = solanaPublicKey?.toString() || null;
 
-const openConnectModal = () => document.querySelector('w3m-button')?.click();
-const { disconnect } = useDisconnect();
+const openConnectModal = () => setSolanaModalVisible(true);
 
-const { address: evmAddress } = useAccount();
-const { switchChain } = useSwitchChain();
 
-  const [chain, setChain] = useState("base");
+
+
+
+  const [chain, setChain] = useState("solana");
   const isSolana = chain === "solana";
 
 const [fromToken, setFromToken] = useState(BASE_STABLE_TOKENS[0]);
@@ -213,7 +213,7 @@ useEffect(() => {
 
   // Fetch balances Base
   useEffect(() => {
-if (!evmAddress || isSolana) { setBalances({}); return; }
+setBalances({}); return;
     const fetchBalances = async () => {
       try {
         const chainHex = "0x" + (8453).toString(16);
@@ -233,7 +233,7 @@ const nativeRes = await fetch(`https://deep-index.moralis.io/api/v2.2/${evmAddre
       } catch { }
     };
     fetchBalances();
-}, [evmAddress, isSolana]);
+}, [solanaAccount]);
 
   const getPrice = useCallback((sym) => {
     const id = COINGECKO_IDS[sym];
@@ -244,7 +244,7 @@ const getBalance = useCallback((token) => {
   if (!token || !evmAddress) return null;
   if (token.address === "NATIVE") return balances["NATIVE"] ?? null;
   return balances[token.address.toLowerCase()] ?? null;
-}, [balances, evmAddress]);
+}, [balances]);
 
   // Quote automatique
   useEffect(() => {
@@ -399,7 +399,7 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
       `}</style>
 
       <PangeaBG />
-      <w3m-button style={{ display: 'none' }} />
+      
 
       {/* Level-up notification */}
       {levelUpNotif && (
@@ -429,40 +429,16 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
 
 {/* Wallet connect */}
 <div style={{ position: "relative", zIndex: 9999 }}>
-  {!isConnected && !solanaConnected ? (
-    <>
-      <button onClick={() => setShowWalletMenu(!showWalletMenu)} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#D4A017,#F5C842)", border: "none", color: "#0a0600", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-        Connect Wallet
-      </button>
-      {showWalletMenu && (
-        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "rgba(10,7,2,0.98)", border: "1px solid rgba(212,160,23,0.2)", borderRadius: 16, padding: 12, display: "flex", flexDirection: "column", gap: 8, minWidth: 200, backdropFilter: "blur(20px)" }}>
-<button onClick={() => { openConnectModal(); setShowWalletMenu(false); }} style={{ padding: "10px 16px", borderRadius: 12, background: "rgba(0,82,255,0.1)", border: "1px solid rgba(0,82,255,0.3)", color: "#0052FF", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", textAlign: "left" }}>
-  🔷 Connect EVM Wallet
-</button>
-          <button onClick={() => { setSolanaModalVisible(true); setShowWalletMenu(false); }} style={{ padding: "10px 16px", borderRadius: 12, background: "rgba(153,69,255,0.1)", border: "1px solid rgba(153,69,255,0.3)", color: "#9945FF", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", textAlign: "left" }}>
-            🟣 Connect Solana Wallet
-          </button>
-        </div>
-      )}
-    </>
+  {!solanaConnected ? (
+    <button onClick={() => setSolanaModalVisible(true)} style={{ padding: "8px 18px", borderRadius: 12, background: "linear-gradient(135deg,#9945FF,#7a35cc)", border: "none", color: "#fff", fontFamily: "'Cinzel',serif", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+      Connect Wallet
+    </button>
   ) : (
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-      {isConnected && (
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <span style={{ color: "#0052FF", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600 }}>
-            {account?.slice(0,4)}...{account?.slice(-4)}
-          </span>
-          <button onClick={() => { disconnect(); }} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontSize: 12, cursor: "pointer" }}>✕</button>
-        </div>
-      )}
-      {solanaConnected && (
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <span style={{ color: "#9945FF", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600 }}>
-            {solanaAccount?.slice(0,4)}...{solanaAccount?.slice(-4)}
-          </span>
-          <button onClick={() => disconnectSolana()} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontSize: 12, cursor: "pointer" }}>✕</button>
-        </div>
-      )}
+    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+      <span style={{ color: "#9945FF", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600 }}>
+        {solanaAccount?.slice(0,4)}...{solanaAccount?.slice(-4)}
+      </span>
+      <button onClick={() => disconnectSolana()} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontSize: 12, cursor: "pointer" }}>✕</button>
     </div>
   )}
 </div>
@@ -477,110 +453,18 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
         onClick={() => { setShowFromList(false); setShowToList(false); setSearchQuery(""); setShowProfile(false); }}>
         <div style={{ width: "100%", maxWidth: 460, padding: "0 16px" }}>
 
-          {/* Onglets Base / Solana */}
-          <div className="pg-chain-tabs">
-            <button className={`pg-chain-tab ${!isSolana ? "base" : ""}`} onClick={() => handleChainSwitch("base")}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#0052FF" }} /> Base
-            </button>
-            <button className={`pg-chain-tab ${isSolana ? "sol" : ""}`} onClick={() => handleChainSwitch("solana")}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#9945FF" }} /> Solana
-            </button>
-          </div>
 
-          {/* Carte swap */}
-<div style={{ display: isSolana ? "block" : "none" }}>
-  <div className="pg-card" onClick={e => e.stopPropagation()}>
-    <div style={{ padding: "12px 4px 4px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 12px" }}>
-        <span style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: "#9945FF", letterSpacing: ".8px" }}>Swap</span>
-        <button className="pg-settings-btn" style={{ color: "rgba(153,69,255,0.38)" }} onClick={() => window._solanaToggleSettings && window._solanaToggleSettings()}>⚙</button>
-      </div>
-      <SolanaSwap />
+
+{/* Carte swap */}
+<div className="pg-card" onClick={e => e.stopPropagation()}>
+  <div style={{ padding: "12px 4px 4px" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 12px" }}>
+      <span style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: "#9945FF", letterSpacing: ".8px" }}>Swap</span>
+      <button className="pg-settings-btn" style={{ color: "rgba(153,69,255,0.38)" }} onClick={() => window._solanaToggleSettings && window._solanaToggleSettings()}>⚙</button>
     </div>
+    <SolanaSwap />
   </div>
 </div>
-{!isSolana && (
-            <div className="pg-card" onClick={e => e.stopPropagation()} style={{ filter: (showFromList || showToList) ? "blur(3px)" : "none", transition: "filter 0.2s" }}>
-              <div style={{ padding: "12px 4px 4px" }}>
-                {/* Header */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 4px 12px" }}>
-                  <span style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: "#0052FF", letterSpacing: ".8px" }}>Swap</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    {swapSource && <span style={{ fontSize: 11, color: "rgba(212,160,23,0.45)" }}>⚡ {swapSource}</span>}
-                    <button className="pg-settings-btn" onClick={() => setShowSettings(!showSettings)}>⚙</button>
-                  </div>
-                </div>
-
-                {/* Slippage */}
-                {showSettings && (
-                  <div style={{ background: "rgba(10,6,0,0.9)", borderRadius: 14, padding: "12px 14px", marginBottom: 8, border: "1px solid rgba(212,160,23,0.08)" }}>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.28)", marginBottom: 8 }}>Slippage tolerance</div>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      {[0.1, 0.5, 1.0, 3.0].map(v => (
-                        <button key={v} className={`pg-slip-btn ${slippage === v ? "on" : ""}`} onClick={() => setSlippage(v)}>{v}%</button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sell */}
-                <div className="pg-token-box" style={{ marginBottom: 2 }}>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", fontWeight: 500, marginBottom: 12 }}>Sell</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <button className="pg-token-pick" onClick={() => { setShowFromList(true); setShowToList(false); setSearchQuery(""); }}>
-                      <TokenLogo src={fromToken.logo} size={24} />{fromToken.symbol}<span style={{ fontSize: 11, opacity: 0.5 }}>▾</span>
-                    </button>
-                    <input type="number" className="pg-amount" placeholder="0" value={fromAmount} onChange={e => setFromAmount(e.target.value)} />
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, minHeight: 16 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>{fromAmount && `≈ $${(Number(fromAmount) * getPrice(fromToken.symbol)).toLocaleString(undefined, { maximumFractionDigits: 2 })}`}</span>
-                    {getBalance(fromToken) !== null && (
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-                        Balance: <span style={{ color: "rgba(212,160,23,0.75)", fontWeight: 600, cursor: "pointer" }} onClick={() => setFromAmount((getBalance(fromToken) || 0).toFixed(6))}>{(getBalance(fromToken) || 0).toFixed(4)} {fromToken.symbol}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Arrow */}
-                <div style={{ display: "flex", justifyContent: "center", padding: "4px 0", margin: "-2px 0" }}>
-                  <button className="pg-arrow" onClick={handleFlip}>⇅</button>
-                </div>
-
-                {/* Buy */}
-                <div className="pg-token-box" style={{ marginTop: 2 }}>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", fontWeight: 500, marginBottom: 12 }}>Buy</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <button className="pg-token-pick" onClick={() => { setShowToList(true); setShowFromList(false); setSearchQuery(""); }}>
-                      <TokenLogo src={toToken.logo} size={24} />{toToken.symbol}<span style={{ fontSize: 11, opacity: 0.5 }}>▾</span>
-                    </button>
-                    <input type="number" className="pg-amount" placeholder={quoteLoading ? "..." : "0"} value={quoteLoading ? "..." : toAmount} readOnly />
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, minHeight: 16 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>{toAmount && `≈ $${(Number(toAmount) * getPrice(toToken.symbol)).toLocaleString(undefined, { maximumFractionDigits: 2 })}`}</span>
-                    {getBalance(toToken) !== null && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>Balance: {(getBalance(toToken) || 0).toFixed(4)} {toToken.symbol}</span>}
-                  </div>
-                </div>
-
-                {/* Quote */}
-                {toAmount && fromAmount && (
-                  <div className="pg-quote">
-                    <div className="pg-quote-row"><span>Rate</span><span className="pg-quote-val">1 {fromToken.symbol} = {(getPrice(fromToken.symbol) / getPrice(toToken.symbol)).toFixed(4)} {toToken.symbol}</span></div>
-                    <div className="pg-quote-row"><span>Price impact</span><span style={{ color: "#00c878", fontWeight: 500 }}>&lt; 0.01%</span></div>
-                    <div className="pg-quote-row"><span>Max slippage</span><span className="pg-quote-val">{slippage}%</span></div>
-                    {swapSource && <div className="pg-quote-row"><span>Source</span><span className="pg-quote-val">⚡ {swapSource}</span></div>}
-                  </div>
-                )}
-
-                {error  && <div className="pg-error">{error}</div>}
-                {txHash && <div className="pg-success">✅ Swap OK ! <span style={{ fontSize: 11, opacity: 0.65, wordBreak: "break-all" }}>{txHash}</span></div>}
-
-                <button className={`pg-swap-btn ${loading ? "busy" : (isConnected && fromAmount) ? "ready" : "idle"}`} onClick={handleSwap} disabled={loading || !fromAmount}>
-                  {loading ? "⟳ Swapping..." : isConnected ? (fromAmount ? `Swap ${fromToken.symbol} → ${toToken.symbol}` : "Enter an amount") : "Connect your wallet"}
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Historique */}
           {swapHistory.length > 0 && !isSolana && (
@@ -643,13 +527,16 @@ const filteredTo   = baseList.filter(t => t.symbol && t.address && t.symbol !== 
         </div>
       )}
 
-{isSolana ? (
-  <button onClick={() => setSolanaModalVisible(true)} style={{ padding: "8px 14px", borderRadius: 12, background: solanaConnected ? "rgba(153,69,255,0.1)" : "linear-gradient(135deg,#9945FF,#7a35cc)", border: solanaConnected ? "1px solid rgba(153,69,255,0.3)" : "none", color: solanaConnected ? "#9945FF" : "#fff", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-    {solanaConnected ? solanaAccount?.slice(0,4) + "..." + solanaAccount?.slice(-4) : "Connect"}
-  </button>
+{solanaConnected ? (
+  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+    <span style={{ color: "#9945FF", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600 }}>
+      {solanaAccount?.slice(0,4)}...{solanaAccount?.slice(-4)}
+    </span>
+    <button onClick={() => disconnectSolana()} style={{ padding: "4px 8px", borderRadius: 8, background: "rgba(255,80,80,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff6b6b", fontSize: 11, cursor: "pointer" }}>✕</button>
+  </div>
 ) : (
-  <button onClick={() => openConnectModal()} style={{ padding: "8px 14px", borderRadius: 12, background: isConnected ? "rgba(212,160,23,0.1)" : "linear-gradient(135deg,#D4A017,#F5C842)", border: isConnected ? "1px solid rgba(212,160,23,0.3)" : "none", color: isConnected ? "#D4A017" : "#0a0600", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-    {isConnected ? account?.slice(0,4) + "..." + account?.slice(-4) : "Connect"}
+  <button onClick={() => setSolanaModalVisible(true)} style={{ padding: "8px 14px", borderRadius: 12, background: "linear-gradient(135deg,#9945FF,#7a35cc)", border: "none", color: "#fff", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+    Connect
   </button>
 )}
 
