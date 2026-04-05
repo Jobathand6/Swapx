@@ -52,7 +52,7 @@ const { disconnect } = useWallet();
 const { setVisible } = useWalletModal();
 
 
-  const [selectedChain, setSelectedChain] = useState(CHAINS_CONFIG[0]);
+  const [selectedChain, setSelectedChain] = useState(CHAINS_CONFIG.find(c => c.id === "solana") || CHAINS_CONFIG[0]);
   const [threshold, setThreshold] = useState(5);
   const [customThreshold, setCustomThreshold] = useState("");
   const [tokens, setTokens] = useState([]);
@@ -72,7 +72,7 @@ const { setVisible } = useWalletModal();
   const handleScan = async () => {
     if (!account) { setError(isSolana ? "Connect a Solana wallet (Phantom)" : "Connect an EVM wallet (MetaMask)"); return; }
     setLoading(true); setError(null); setTokens([]); setSelectedTokens([]); setScanned(false);
-    console.log("Scanning with account:", account, "evmAccount:", evmAccount, "solanaAccount:", solanaAccount);
+    console.log("Scanning with account:", account);
 
     try {
       if (isSolana) {
@@ -164,76 +164,80 @@ const { setVisible } = useWalletModal();
   };
 
   // ─── SWEEP ───────────────────────────────────────────────
-  const handleSweep = async () => {
-    if (!account) return;
-    if (selectedTokens.length === 0) { setError("Please select at least one token."); return; }
-    setSweeping(true); setError(null);
-    let sweptCount = 0, totalReceived = 0;
+const handleSweep = async () => {
+  if (!account) return;
+  if (selectedTokens.length === 0) { setError("Please select at least one token."); return; }
+  setSweeping(true); setError(null);
+  let sweptCount = 0, totalReceived = 0;
 
-    if (isSolana) {
-      const connection = new Connection(HELIUS_RPC, "confirmed");
-      for (const token of tokens.filter(t => selectedTokens.includes(t.address))) {
+  if (isSolana) {
+    const connection = new Connection(HELIUS_RPC, "confirmed");
+    const selectedTokensList = tokens.filter(t => selectedTokens.includes(t.address));
+    
+    try {
+      // Fetch all quotes in parallel
+      const quotes = await Promise.all(selectedTokensList.map(async token => {
+        const amount = Math.floor(Number(token.balance) * Math.pow(10, token.decimals));
+        const quoteRes = await fetch(`/api/solana?type=quote&inputMint=${token.address}&outputMint=${SOL_MINT}&amount=${amount}&slippageBps=300`);
+        const quote = await quoteRes.json();
+        return { token, quote };
+      }));
+
+      const validQuotes = quotes.filter(q => q.quote?.outAmount);
+
+      // Get all swap transactions
+      const swapTxs = await Promise.all(validQuotes.map(async ({ token, quote }) => {
+        const swapRes = await fetch("/api/solana", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true }),
+        });
+        const swapData = await swapRes.json();
+        return { token, swapData };
+      }));
+
+      const validTxs = swapTxs.filter(s => s.swapData?.swapTransaction);
+
+      // Deserialize all transactions
+      const transactions = validTxs.map(({ token, swapData }) => ({
+        token,
+        tx: VersionedTransaction.deserialize(Buffer.from(swapData.swapTransaction, "base64")),
+      }));
+
+      // Sign ALL transactions at once
+      let signedTxs;
+      const walletAdapter = window?.phantom?.solana || window?.solflare;
+      if (!walletAdapter) throw new Error("No Solana wallet found");
+      
+      if (walletAdapter.signAllTransactions) {
+        signedTxs = await walletAdapter.signAllTransactions(transactions.map(t => t.tx));
+      } else {
+        signedTxs = await Promise.all(transactions.map(t => walletAdapter.signTransaction(t.tx)));
+      }
+
+      // Send all transactions
+      for (let i = 0; i < signedTxs.length; i++) {
         try {
-          const amount = Math.floor(Number(token.balance) * Math.pow(10, token.decimals));
-          const quoteRes = await fetch(`/api/solana?type=quote&inputMint=${token.address}&outputMint=${SOL_MINT}&amount=${amount}&slippageBps=300`);
-          const quote = await quoteRes.json();
-          if (!quote.outAmount) continue;
-
-          const swapRes = await fetch("/api/solana", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ quoteResponse: quote, userPublicKey: account, wrapAndUnwrapSol: true }),
-          });
-          const swapData = await swapRes.json();
-          if (!swapData.swapTransaction) continue;
-
-          const transaction = VersionedTransaction.deserialize(Buffer.from(swapData.swapTransaction, "base64"));
-          let signedTx;
-          if (window?.phantom?.solana) signedTx = await window.phantom.solana.signTransaction(transaction);
-          else if (window?.solflare) signedTx = await window.solflare.signTransaction(transaction);
-          else throw new Error("No Solana wallet found");
-
-          const txid = await connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: true, maxRetries: 3 });
+          const txid = await connection.sendRawTransaction(signedTxs[i].serialize(), { skipPreflight: true, maxRetries: 3 });
           await connection.confirmTransaction(txid, "confirmed");
           sweptCount++;
-          totalReceived += token.valueUsd * 0.97;
-        } catch (e) { console.error(`Error sweep ${token.symbol}:`, e); }
+          totalReceived += transactions[i].token.valueUsd * 0.98;
+        } catch (e) { console.error(`Error sending tx ${i}:`, e); }
       }
-    } else {
-      const { sendSwapTransaction, approveToken } = await import("../lib/sendSwapTx");
-      const chainIdNum = parseInt(selectedChain.id, 16);
-      const receiveAddr = RECEIVE_TOKENS[selectedChain.id]?.address;
 
-      for (const token of tokens.filter(t => selectedTokens.includes(t.address))) {
-        try {
-          const src = token.address, dest = receiveAddr, amountReadable = token.balance;
-          try {
-            const approveRes = await fetch(`/api/openocean?type=quote&chainId=${chainIdNum}&inTokenAddress=${src}&outTokenAddress=${dest}&amount=${amountReadable}&slippage=3&account=${account}`);
-            const approveData = await approveRes.json();
-            if (approveData?.data?.to) {
-              await approveToken({ chainId: chainIdNum, tokenAddress: token.address, spenderAddress: approveData.data.to });
-              await new Promise(r => setTimeout(r, 2000));
-            }
-          } catch { }
-          const params = new URLSearchParams({ type: "quote", chainId: chainIdNum.toString(), inTokenAddress: src, outTokenAddress: dest, amount: amountReadable, slippage: "3", account });
-          const res = await fetch(`/api/openocean?${params}`);
-          const data = await res.json();
-          if (data?.data?.to) {
-            await sendSwapTransaction({ chainId: chainIdNum, to: data.data.to, data: data.data.data, value: data.data.value || "0", gas: data.data.estimatedGas });
-            sweptCount++;
-            totalReceived += token.valueUsd * 0.97;
-          }
-        } catch (e) { console.error(`Error swap ${token.symbol}:`, e); }
-      }
+    } catch (e) {
+      console.error("Sweep error:", e);
+      setError("Sweep failed: " + e.message);
     }
+  }
 
-    setSweeping(false);
-    if (sweptCount > 0) {
-      setSweptResult({ count: sweptCount, value: totalReceived.toFixed(2), receivedToken: isSolana ? "SOL" : RECEIVE_TOKENS[selectedChain.id]?.symbol });
-    } else {
-      setError("Sweep failed. Please try again.");
-    }
-  };
+  setSweeping(false);
+  if (sweptCount > 0) {
+    setSweptResult({ count: sweptCount, value: totalReceived.toFixed(2), receivedToken: "SOL" });
+  } else if (!error) {
+    setError("Sweep failed. Please try again.");
+  }
+};
 
   const totalSelected = tokens.filter(t => selectedTokens.includes(t.address)).reduce((s, t) => s + t.valueUsd, 0);
   const estimatedReceive = totalSelected * 0.97;

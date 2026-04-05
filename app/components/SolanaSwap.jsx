@@ -39,7 +39,7 @@ const [toToken,   setToToken]   = useState(STABLE_TOKENS[1]);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [error,        setError]        = useState(null);
   const [txHash,       setTxHash]       = useState(null);
- const { publicKey, sendTransaction, connected, wallet } = useWallet();
+ const { publicKey, sendTransaction, connected, wallet, disconnect } = useWallet();
 const { setVisible } = useWalletModal();
 const connection = new Connection("https://mainnet.helius-rpc.com/?api-key=b82f7243-5b22-44ae-a3d4-d5869d9c5334", "confirmed");
 const address = publicKey?.toString() || null;
