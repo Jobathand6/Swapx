@@ -33,6 +33,31 @@ if (type === "search") {
     );
     const data = await res.json();
     const seen = new Set();
+// Fetch decimals from Helius
+    let decimalsMap = {};
+    try {
+      const mints = (data.pairs || [])
+        .filter(p => p.chainId === "solana")
+        .map(p => p.baseToken.address)
+        .slice(0, 20);
+      
+      const heliusRes = await fetch("https://mainnet.helius-rpc.com/?api-key=b82f7243-5b22-44ae-a3d4-d5869d9c5334", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0", id: 1,
+          method: "getMultipleAccounts",
+          params: [mints, { encoding: "jsonParsed" }]
+        }),
+      });
+      const heliusData = await heliusRes.json();
+      heliusData.result?.value?.forEach((acc, i) => {
+        if (acc?.data?.parsed?.info?.decimals !== undefined) {
+          decimalsMap[mints[i]] = acc.data.parsed.info.decimals;
+        }
+      });
+    } catch { }
+
     const results = (data.pairs || [])
       .filter(p => p.chainId === "solana")
       .map(p => ({
@@ -40,7 +65,7 @@ if (type === "search") {
         name: p.baseToken.name,
         mint: p.baseToken.address,
         logo: p.info?.imageUrl || "",
-        decimals: 6,
+        decimals: decimalsMap[p.baseToken.address] ?? 6,
       }))
       .filter(t => {
         if (seen.has(t.mint)) return false;
@@ -87,7 +112,7 @@ if (type === "search-base") {
 export async function POST(request) {
   const body = await request.json();
   
-  try {
+try {
     const swapResult = await jupiterApi.swapPost({
       swapRequest: {
         quoteResponse: body.quoteResponse,

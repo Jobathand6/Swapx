@@ -70,7 +70,7 @@ useEffect(() => {
               name: p.baseToken.name,
               mint: p.baseToken.address,
               logo: p.info?.imageUrl || "",
-              decimals: 6,
+              decimals: p.baseToken?.decimals || 6,
             });
           }
           return acc;
@@ -88,12 +88,12 @@ const [searching, setSearching] = useState(false);
     .filter(([mint, bal]) => bal > 0)
     .map(([mint, bal]) => {
       const known = STABLE_TOKENS.find(t => t.mint === mint) || trendingTokens.find(t => t.mint === mint);
-      return known ? { ...known, balance: bal } : {
+      return known ? { ...known, balance: bal, decimals: window._tokenDecimals?.[mint] || known.decimals } : {
         symbol: mint.slice(0, 6) + "...",
         name: "Unknown",
         mint,
         logo: "",
-        decimals: 6,
+        decimals: window._tokenDecimals?.[mint] || 6,
         balance: bal,
       };
     });
@@ -122,6 +122,8 @@ const [searching, setSearching] = useState(false);
           splData.result.value.forEach(acc => {
             const info = acc.account.data.parsed.info;
             nb[info.mint] = Number(info.tokenAmount.uiAmount) || 0;
+if (!window._tokenDecimals) window._tokenDecimals = {};
+window._tokenDecimals[info.mint] = info.tokenAmount.decimals;
           });
         }
         setSolBalances(nb);

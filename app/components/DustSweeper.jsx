@@ -46,7 +46,7 @@ function TokenImg({ src, size = 28 }) {
 }
 
 export default function DustSweeper() {
-  const { publicKey } = useWallet();
+  const { publicKey, sendTransaction, signAllTransactions } = useWallet();
 const solanaAccount = publicKey?.toString() || null;
 const { disconnect } = useWallet();
 const { setVisible } = useWalletModal();
@@ -178,7 +178,7 @@ const handleSweep = async () => {
       // Fetch all quotes in parallel
       const quotes = await Promise.all(selectedTokensList.map(async token => {
         const amount = Math.floor(Number(token.balance) * Math.pow(10, token.decimals));
-        const quoteRes = await fetch(`/api/solana?type=quote&inputMint=${token.address}&outputMint=${SOL_MINT}&amount=${amount}&slippageBps=300`);
+        const quoteRes = await fetch(`/api/solana?type=quote&inputMint=${token.address}&outputMint=${SOL_MINT}&amount=${amount}&slippageBps=50`);
         const quote = await quoteRes.json();
         return { token, quote };
       }));
@@ -209,11 +209,11 @@ const handleSweep = async () => {
       const walletAdapter = window?.phantom?.solana || window?.solflare;
       if (!walletAdapter) throw new Error("No Solana wallet found");
       
-      if (walletAdapter.signAllTransactions) {
-        signedTxs = await walletAdapter.signAllTransactions(transactions.map(t => t.tx));
-      } else {
-        signedTxs = await Promise.all(transactions.map(t => walletAdapter.signTransaction(t.tx)));
-      }
+if (signAllTransactions) {
+  signedTxs = await signAllTransactions(transactions.map(t => t.tx));
+} else {
+  signedTxs = await Promise.all(transactions.map(t => walletAdapter.signTransaction(t.tx)));
+}
 
       // Send all transactions
       for (let i = 0; i < signedTxs.length; i++) {
